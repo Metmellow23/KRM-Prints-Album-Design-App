@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>AlbumDesigner - Professionele Fotoalbum Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="projectSummary">
+    <strong id="projectSummaryName">Nieuw album</strong>
+    <span id="projectSummaryMeta">20×30 cm</span>
+  </div>
+
+
+<div id="spreadBadge">
+  <span class="spread-label">Spreads</span>
+  <span id="spreadCount">0</span>
+</div>
+
+
+  <button class="btn" onclick="openIntroOverlay('edit')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 20h9"/>
+      <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/>
+    </svg>
+    Project
+  </button>
+
+  <label class="upload-label" for="upload">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    Foto's Toevoegen
+  </label>
+  <input type="file" id="upload" multiple>
+
+  <button class="btn" onclick="duplicateSpread(activeSpread)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+    Duplicate
+  </button>
+  <button class="btn btn-danger" onclick="deleteSpread(activeSpread)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </svg>
+    Verwijderen
+  </button>
+  <button class="btn" onclick="saveProject()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+      <polyline points="17 21 17 13 7 13 7 21"/>
+      <polyline points="7 3 7 8 15 8"/>
+    </svg>
+    Project Opslaan
+  </button>
+  <button class="btn btn-primary" onclick="exportAllSpreadsPDF()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="12" y1="18" x2="12" y2="12"/>
+      <line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+    Download PDF
+  </button>
+
+
+  <button class="btn theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Thema wisselen" title="Thema wisselen">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+
+
+
+  <div class="zoom-controls">
+    <button class="btn zoom-btn" onclick="zoomOut()">−</button>
+    <span id="zoomLevel">100%</span>
+    <button class="btn zoom-btn" onclick="zoomIn()">+</button>
+  </div>
+</div>
+
+<div id="introOverlay">
+  <div class="intro-card">
+    <h1 class="intro-title">Album Designer</h1>
+    <p class="intro-subtitle">Kies eerst de basisinstellingen voor dit project. Daarna blijft de bovenbalk compacter en overzichtelijker.</p>
+    <div class="intro-grid">
+      <div class="field-group">
+        <label for="startupProjectName">Projectnaam</label>
+        <input id="startupProjectName" type="text" placeholder="Bijv. Trouwalbum Emma & Sam" value="Nieuw album">
+      </div>
+      <div class="field-group">
+        <label for="startupFormat">Formaat</label>
+        <select id="startupFormat">
+          <option value="306x156">15×15 cm</option>
+          <option value="406x156">15×20 cm</option>
+          <option value="456x156">15×22 cm</option>
+          <option value="406x206">20×20 cm</option>
+          <option value="606x206" selected>20×30 cm</option>
+          <option value="506x256">25×25 cm</option>
+          <option value="756x256">25×38 cm</option>
+          <option value="606x306">30×30 cm</option>
+          <option value="806x306">30×40 cm</option>
+          <option value="906x306">30×45 cm</option>
+        </select>
+      </div>
+    </div>
+    <div class="intro-actions">
+      <button class="btn btn-primary" id="startProjectBtn">Project openen</button>
+    </div>
+    <div class="intro-secondary">
+      <span class="intro-note">Of laad direct een bestaand projectbestand.</span>
+      <div>
+        <label class="btn" for="introLoadProjectInput">Project laden</label>
+        <input type="file" id="introLoadProjectInput" accept="application/json">
+      </div>
+    </div>
+  </div>
+</div></div>
+<input type="file" id="loadProjectInput" accept="application/json">
+
+<div id="workspace">
+  <div id="addSpreadBtn">+<span>Spread</span></div>
+</div>
+
+
+<div id="libraryPanel">
+  <div id="libraryToolbar">
+    <div class="library-toolbar-left">
+      <div id="libraryTabs">
+        <button class="library-tab active" data-mode="photos" type="button">Foto's</button>
+        <button class="library-tab" data-mode="templates" type="button">Templates</button>
+      </div>
+      <div id="libraryTitle">Fotobibliotheek</div>
+    </div>
+    <div class="library-toolbar-right">
+      <div id="libraryZoomWrap">
+        <label for="libraryZoom">Zoom</label>
+        <input id="libraryZoom" type="range" min="60" max="150" step="2" value="60">
+      </div>
+      <div id="librarySortWrap">
+        <label for="librarySort">Sorteren</label>
+        <select id="librarySort">
+          <option value="name-asc">Naam A–Z</option>
+          <option value="name-desc">Naam Z–A</option>
+          <option value="capture-desc">Opnamedatum nieuw → oud</option>
+          <option value="capture-asc">Opnamedatum oud → nieuw</option>
+        </select>
+      </div>
+      <div id="templateCountWrap" class="hidden">
+        <label for="templateCount">Foto's</label>
+        <select id="templateCount">
+          <option value="1">1 foto</option>
+          <option value="2">2 foto's</option>
+          <option value="3">3 foto's</option>
+          <option value="4">4 foto's</option>
+          <option value="5">5 foto's</option>
+          <option value="6">6 foto's</option>
+        </select>
+      </div>
+      <div id="templateGapWrap" class="hidden">
+        <label for="templateGap">Ruimte</label>
+        <input id="templateGap" type="range" min="0" max="40" step="1" value="5">
+        <span id="templateGapValue">5 px</span>
+      </div>
+      <div id="templateFilterWrap" class="hidden">
+        <label for="templateFilter">Filter</label>
+        <select id="templateFilter">
+          <option value="all">Alle templates</option>
+          <option value="full-bleed">Full bleed</option>
+          <option value="compact">Compact</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="libraryView" class="library-view active">
+    <div id="library">
+      <div class="library-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <div class="library-empty-text">Klik op "Foto's Toevoegen"</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="templateView" class="library-view">
+    <div id="templateLibrary"><div id="templateEmpty">Kies eerst het aantal foto\'s voor deze spread en selecteer daarna een template.</div></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+<footer id="footer">© KRM Prints</footer>
+
+</body>
+</html>

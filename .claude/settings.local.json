@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/metem/Desktop/**)",
+      "Bash(unzip -l krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892.zip)",
+      "Bash(awk 'NR>=1445 && NR<=1644 && \\(/<script/||/<\\\\/script/||/<style/||/<\\\\/style/\\)' /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892/index.html)",
+      "Bash(sed -n 8,1330p /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892/index.html)",
+      "Bash(printf '\\\\n/* footer \\(uit losse <style> onderaan body\\) */\\\\n')",
+      "Bash(sed -n 3677,3686p /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892/index.html)",
+      "Bash(sed -n 1646,3672p /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892/index.html)",
+      "Bash(sed -n 1445,1644p /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/krm-album-designer-8ac8739d3912d03f2e85791614d8e89e411c1892/index.html)",
+      "Bash(cp /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/style.css /c/Users/metem/Album-Design-App/style.css)",
+      "Bash(cp /c/Users/metem/AppData/Local/Temp/claude/C--Users-metem-Album-Design-App/5bab0bf2-bd1d-4c05-bb2f-9541c9936924/scratchpad/app.js /c/Users/metem/Album-Design-App/app.js)",
+      "Bash(node --check app.js)",
+      "Bash(npx --yes vercel --prod --yes)",
+      "Bash(npx --yes vercel link --yes --project album-design-app)",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}  type=%{content_type}  bytes=%{size_download}\\\\n' https://album-design-app.vercel.app/)",
+      "Bash(curl -s https://album-design-app.vercel.app/)"
+    ]
+  }
+}
