@@ -65,171 +65,44 @@ const formatLabels = {
 };
 
 const templateCatalog = [
+  // =======================================================================
+  //  FULL-BLEED TEMPLATE CATALOG (alleen rand-tot-rand, geen marges)
+  //  Slots zijn genormaliseerd (0..1) en betegelen het volledige vlak.
+  //  mmToLayout houdt album-randen op 0 inset; alleen interne naden krijgen
+  //  de templateGap. 1 t/m 6 foto's, meerdere moderne varianten per aantal.
+  // =======================================================================
+
+  // ---------------------------- 1 FOTO ----------------------------
   {
-    id: "full-single",
+    id: "fb-1-hero",
     name: "Hero Full Bleed",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 1.00, h: 1.00, style: "full-bleed" }
     ]
   },
+
+  // ---------------------------- 2 FOTO'S ----------------------------
   {
-    id: "two-split",
-    name: "Split 50 / 50",
+    id: "fb-2-vsplit",
+    name: "Verticaal 50 / 50",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
       { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
     ]
   },
-
   {
-    id: "two-one-third-two-third",
-    name: "1/3 + 2/3",
-    category: "compact",
+    id: "fb-2-hsplit",
+    name: "Horizontaal 50 / 50",
+    category: "full-bleed",
     slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 1 },
-      { col: 1, row: 0, colSpan: 2, rowSpan: 1, gridCols: 3, gridRows: 1 }
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 1.00, h: 0.50, style: "full-bleed" }
     ]
   },
   {
-    id: "two-two-third-one-third",
-    name: "2/3 + 1/3",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 2, rowSpan: 1, gridCols: 3, gridRows: 1 },
-      { col: 2, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 1 }
-    ]
-  },
-  {
-    id: "two-vertical",
-    name: "Compact 2 gelijk",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 1 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 1 }
-    ]
-  },
-
-  {
-    id: "three-compact",
-    name: "Compact Drie",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 2, gridCols: 2, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 }
-    ]
-  },
-  {
-    id: "three-filmstrip",
-    name: "Filmstrip",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 1 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 1 },
-      { col: 2, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 1 }
-    ]
-  },
-  {
-    id: "three-top-two-bottom",
-    name: "1 boven, 2 onder",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 2, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 }
-    ]
-  },
-
-  {
-    id: "four-grid",
-    name: "Compact Vier",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 2, gridRows: 2 }
-    ]
-  },
-  {
-    id: "four-left-large",
-    name: "Links groot",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 2, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 2, rowSpan: 1, gridCols: 3, gridRows: 2 }
-    ]
-  },
-  {
-    id: "four-top-strip",
-    name: "Bovenstrook + 3",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 3, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 }
-    ]
-  },
-
-  {
-    id: "five-mosaic",
-    name: "Mosaic Vijf",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 2, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 }
-    ]
-  },
-  {
-    id: "five-center-hero",
-    name: "Center Hero",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 4, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 4, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 2, rowSpan: 2, gridCols: 4, gridRows: 2 },
-      { col: 3, row: 0, colSpan: 1, rowSpan: 1, gridCols: 4, gridRows: 2 },
-      { col: 3, row: 1, colSpan: 1, rowSpan: 1, gridCols: 4, gridRows: 2 }
-    ]
-  },
-
-  {
-    id: "six-grid",
-    name: "Grid Zes",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 }
-    ]
-  },
-  {
-    id: "six-filmstrip",
-    name: "Filmstrip Zes",
-    category: "compact",
-    slots: [
-      { col: 0, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 0, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 0, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 1, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 },
-      { col: 2, row: 1, colSpan: 1, rowSpan: 1, gridCols: 3, gridRows: 2 }
-    ]
-  },
-
-  {
-    id: "two-one-third-two-third-fb",
+    id: "fb-2-left-third",
     name: "1/3 + 2/3",
     category: "full-bleed",
     slots: [
@@ -238,7 +111,7 @@ const templateCatalog = [
     ]
   },
   {
-    id: "two-two-third-one-third-fb",
+    id: "fb-2-right-third",
     name: "2/3 + 1/3",
     category: "full-bleed",
     slots: [
@@ -247,27 +120,19 @@ const templateCatalog = [
     ]
   },
   {
-    id: "two-vertical-fb",
-    name: "Compact 2 gelijk",
+    id: "fb-2-htop-60",
+    name: "Boven 60 / 40",
     category: "full-bleed",
     slots: [
-      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
-      { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.60, style: "full-bleed" },
+      { x: 0.00, y: 0.60, w: 1.00, h: 0.40, style: "full-bleed" }
     ]
   },
+
+  // ---------------------------- 3 FOTO'S ----------------------------
   {
-    id: "three-compact-fb",
-    name: "Compact Drie",
-    category: "full-bleed",
-    slots: [
-      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
-      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
-      { x: 0.50, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" }
-    ]
-  },
-  {
-    id: "three-filmstrip-fb",
-    name: "Filmstrip",
+    id: "fb-3-cols",
+    name: "Drie kolommen",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" },
@@ -276,18 +141,60 @@ const templateCatalog = [
     ]
   },
   {
-    id: "three-top-two-bottom-fb",
-    name: "1 boven, 2 onder",
+    id: "fb-3-rows",
+    name: "Drie rijen",
     category: "full-bleed",
     slots: [
-      { x: 0.00, y: 0.00, w: 1.00, h: 0.50, style: "full-bleed" },
-      { x: 0.00, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.3333, style: "full-bleed" },
+      { x: 0.00, y: 0.3333, w: 1.00, h: 0.3334, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 1.00, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-left-hero",
+    name: "Groot links + 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
       { x: 0.50, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" }
     ]
   },
   {
-    id: "four-grid-fb",
-    name: "Compact Vier",
+    id: "fb-3-right-hero",
+    name: "2 + groot rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-top-hero",
+    name: "Groot boven + 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.60, style: "full-bleed" },
+      { x: 0.00, y: 0.60, w: 0.50, h: 0.40, style: "full-bleed" },
+      { x: 0.50, y: 0.60, w: 0.50, h: 0.40, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-bottom-hero",
+    name: "2 + groot onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.40, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.40, style: "full-bleed" },
+      { x: 0.00, y: 0.40, w: 1.00, h: 0.60, style: "full-bleed" }
+    ]
+  },
+
+  // ---------------------------- 4 FOTO'S ----------------------------
+  {
+    id: "fb-4-grid",
+    name: "Raster 2 x 2",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -297,30 +204,54 @@ const templateCatalog = [
     ]
   },
   {
-    id: "four-left-large-fb",
-    name: "Links groot",
+    id: "fb-4-cols",
+    name: "Vier kolommen",
     category: "full-bleed",
     slots: [
-      { x: 0.00, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" },
-      { x: 0.3333, y: 0.00, w: 0.3334, h: 0.50, style: "full-bleed" },
-      { x: 0.6667, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
-      { x: 0.3333, y: 0.50, w: 0.6667, h: 0.50, style: "full-bleed" }
+      { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.25, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
     ]
   },
   {
-    id: "four-top-strip-fb",
-    name: "Bovenstrook + 3",
+    id: "fb-4-rows",
+    name: "Vier rijen",
     category: "full-bleed",
     slots: [
-      { x: 0.00, y: 0.00, w: 1.00, h: 0.50, style: "full-bleed" },
-      { x: 0.00, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" },
-      { x: 0.3333, y: 0.50, w: 0.3334, h: 0.50, style: "full-bleed" },
-      { x: 0.6667, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" }
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.25, w: 1.00, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 1.00, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.75, w: 1.00, h: 0.25, style: "full-bleed" }
     ]
   },
   {
-    id: "five-mosaic-fb",
-    name: "Mosaic Vijf",
+    id: "fb-4-left-hero",
+    name: "Groot links + 3",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" },
+      { x: 0.60, y: 0.00, w: 0.40, h: 0.3333, style: "full-bleed" },
+      { x: 0.60, y: 0.3333, w: 0.40, h: 0.3334, style: "full-bleed" },
+      { x: 0.60, y: 0.6667, w: 0.40, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-top-hero",
+    name: "Groot boven + 3",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.60, style: "full-bleed" },
+      { x: 0.00, y: 0.60, w: 0.3333, h: 0.40, style: "full-bleed" },
+      { x: 0.3333, y: 0.60, w: 0.3334, h: 0.40, style: "full-bleed" },
+      { x: 0.6667, y: 0.60, w: 0.3333, h: 0.40, style: "full-bleed" }
+    ]
+  },
+
+  // ---------------------------- 5 FOTO'S ----------------------------
+  {
+    id: "fb-5-mosaic",
+    name: "Mozaiek vijf",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
@@ -331,8 +262,8 @@ const templateCatalog = [
     ]
   },
   {
-    id: "five-center-hero-fb",
-    name: "Center Hero",
+    id: "fb-5-center-hero",
+    name: "Center hero",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
@@ -343,8 +274,46 @@ const templateCatalog = [
     ]
   },
   {
-    id: "six-grid-fb",
-    name: "Grid Zes",
+    id: "fb-5-left-hero",
+    name: "Groot links + 4",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-top-hero",
+    name: "Groot boven + 4",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.55, style: "full-bleed" },
+      { x: 0.00, y: 0.55, w: 0.25, h: 0.45, style: "full-bleed" },
+      { x: 0.25, y: 0.55, w: 0.25, h: 0.45, style: "full-bleed" },
+      { x: 0.50, y: 0.55, w: 0.25, h: 0.45, style: "full-bleed" },
+      { x: 0.75, y: 0.55, w: 0.25, h: 0.45, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-cols",
+    name: "Vijf kolommen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.20, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.40, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.60, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.80, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" }
+    ]
+  },
+
+  // ---------------------------- 6 FOTO'S ----------------------------
+  {
+    id: "fb-6-grid-3x2",
+    name: "Raster 3 x 2",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
@@ -356,16 +325,259 @@ const templateCatalog = [
     ]
   },
   {
-    id: "six-filmstrip-fb",
-    name: "Filmstrip Zes",
+    id: "fb-6-grid-2x3",
+    name: "Raster 2 x 3",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.00, y: 0.3333, w: 0.50, h: 0.3334, style: "full-bleed" },
+      { x: 0.50, y: 0.3333, w: 0.50, h: 0.3334, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-6-cols",
+    name: "Zes kolommen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.0000, y: 0.00, w: 0.1667, h: 1.00, style: "full-bleed" },
+      { x: 0.1667, y: 0.00, w: 0.1667, h: 1.00, style: "full-bleed" },
+      { x: 0.3334, y: 0.00, w: 0.1666, h: 1.00, style: "full-bleed" },
+      { x: 0.5000, y: 0.00, w: 0.1667, h: 1.00, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.1667, h: 1.00, style: "full-bleed" },
+      { x: 0.8334, y: 0.00, w: 0.1666, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-6-top2-bottom4",
+    name: "2 boven + 4 onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.25, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-6-left2-right4",
+    name: "2 links + raster rechts",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" },
       { x: 0.3333, y: 0.00, w: 0.3334, h: 0.50, style: "full-bleed" },
       { x: 0.6667, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
-      { x: 0.00, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" },
       { x: 0.3333, y: 0.50, w: 0.3334, h: 0.50, style: "full-bleed" },
       { x: 0.6667, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" }
+    ]
+  },
+
+  // ============ 3 FOTO'S — extra asymmetrische / hero varianten ============
+  {
+    id: "fb-3-hero-left-65",
+    name: "Hero links 65 + 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.65, h: 1.00, style: "full-bleed" },
+      { x: 0.65, y: 0.00, w: 0.35, h: 0.50, style: "full-bleed" },
+      { x: 0.65, y: 0.50, w: 0.35, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-hero-right-65",
+    name: "2 + hero rechts 65",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.35, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.35, h: 0.50, style: "full-bleed" },
+      { x: 0.35, y: 0.00, w: 0.65, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-hero-top-70",
+    name: "Hero boven 70 + 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.70, style: "full-bleed" },
+      { x: 0.00, y: 0.70, w: 0.50, h: 0.30, style: "full-bleed" },
+      { x: 0.50, y: 0.70, w: 0.50, h: 0.30, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-hero-bottom-70",
+    name: "2 + hero onder 70",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.30, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.30, style: "full-bleed" },
+      { x: 0.00, y: 0.30, w: 1.00, h: 0.70, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-hero-left-vstrips",
+    name: "Hero links + 2 stroken",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" },
+      { x: 0.60, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.80, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-3-band-center",
+    name: "Hero midden + 2 stroken",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" },
+      { x: 0.20, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" },
+      { x: 0.80, y: 0.00, w: 0.20, h: 1.00, style: "full-bleed" }
+    ]
+  },
+
+  // ============ 4 FOTO'S — extra asymmetrische / hero varianten ============
+  {
+    id: "fb-4-hero-right-3strip",
+    name: "3 stroken + hero rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.35, h: 0.3333, style: "full-bleed" },
+      { x: 0.00, y: 0.3333, w: 0.35, h: 0.3334, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.35, h: 0.3333, style: "full-bleed" },
+      { x: 0.35, y: 0.00, w: 0.65, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-hero-bottom-3col",
+    name: "3 kolommen + hero onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.3333, h: 0.40, style: "full-bleed" },
+      { x: 0.3333, y: 0.00, w: 0.3334, h: 0.40, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 0.40, style: "full-bleed" },
+      { x: 0.00, y: 0.40, w: 1.00, h: 0.60, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-hero-tl-L",
+    name: "Hero linksboven + L",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.6667, h: 0.6667, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 0.6667, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-hero-tr-L",
+    name: "Hero rechtsboven + L",
+    category: "full-bleed",
+    slots: [
+      { x: 0.3333, y: 0.00, w: 0.6667, h: 0.6667, style: "full-bleed" },
+      { x: 0.00, y: 0.00, w: 0.3333, h: 0.6667, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-hero-left-mixed",
+    name: "Hero links + 2 boven + breed",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" },
+      { x: 0.60, y: 0.00, w: 0.20, h: 0.50, style: "full-bleed" },
+      { x: 0.80, y: 0.00, w: 0.20, h: 0.50, style: "full-bleed" },
+      { x: 0.60, y: 0.50, w: 0.40, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-4-hero-center-vert",
+    name: "Hero midden + zijblokken",
+    category: "full-bleed",
+    slots: [
+      { x: 0.25, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+
+  // ============ 5 FOTO'S — extra asymmetrische / hero varianten ============
+  {
+    id: "fb-5-hero-left-4strip",
+    name: "Hero links + 4 stroken",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" },
+      { x: 0.60, y: 0.00, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.60, y: 0.25, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.60, y: 0.50, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.60, y: 0.75, w: 0.40, h: 0.25, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-hero-right-4strip",
+    name: "4 stroken + hero rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.25, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.00, y: 0.75, w: 0.40, h: 0.25, style: "full-bleed" },
+      { x: 0.40, y: 0.00, w: 0.60, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-hero-top-4col",
+    name: "Hero boven + 4 kolommen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 0.60, style: "full-bleed" },
+      { x: 0.00, y: 0.60, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.25, y: 0.60, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.50, y: 0.60, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.75, y: 0.60, w: 0.25, h: 0.40, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-hero-bottom-4col",
+    name: "4 kolommen + hero onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.25, y: 0.00, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.40, style: "full-bleed" },
+      { x: 0.00, y: 0.40, w: 1.00, h: 0.60, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-hero-tl",
+    name: "Hero linksboven + 4",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.6667, h: 0.6667, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 0.3333, style: "full-bleed" },
+      { x: 0.6667, y: 0.3333, w: 0.3333, h: 0.3334, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  {
+    id: "fb-5-hero-tr",
+    name: "Hero rechtsboven + 4",
+    category: "full-bleed",
+    slots: [
+      { x: 0.3333, y: 0.00, w: 0.6667, h: 0.6667, style: "full-bleed" },
+      { x: 0.00, y: 0.00, w: 0.3333, h: 0.3333, style: "full-bleed" },
+      { x: 0.00, y: 0.3333, w: 0.3333, h: 0.3334, style: "full-bleed" },
+      { x: 0.00, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" },
+      { x: 0.50, y: 0.6667, w: 0.50, h: 0.3333, style: "full-bleed" }
     ]
   }
 ];
