@@ -1723,6 +1723,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     const startX = e.clientX;
     const startY = e.clientY;
     const imageRatio = frameData.photoId ? getPhotoAspectRatio(frameData.photoId) : Math.max(0.5, startW / Math.max(1, startH));
+    // Onthoud het huidige focuspunt (pan) zodat resize dat behoudt i.p.v. hard te centreren.
+    const pctX = frameData.imageWidth ? (startW / 2 - frameData.imageLeft) / frameData.imageWidth : 0.5;
+    const pctY = frameData.imageHeight ? (startH / 2 - frameData.imageTop) / frameData.imageHeight : 0.5;
 
     function resize(ev){
       const dx = (ev.clientX - startX) / visualScale;
@@ -1751,8 +1754,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
           frameData.imageHeight = nextH;
           frameData.imageWidth = nextH * imageRatio;
         }
-        frameData.imageLeft = (nextW - frameData.imageWidth) / 2;
-        frameData.imageTop = (nextH - frameData.imageHeight) / 2;
+        frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
+        frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
+        clampImagePosition(frameData);
       } else {
         frameData.imageWidth = nextW;
         frameData.imageHeight = nextH;
@@ -1794,6 +1798,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       const startX = e.clientX;
       const startY = e.clientY;
       const imageRatio = getPhotoAspectRatio(frameData.photoId);
+      // Onthoud het huidige focuspunt (pan) zodat resize dat behoudt i.p.v. hard te centreren.
+      const pctX = frameData.imageWidth ? (startW / 2 - frameData.imageLeft) / frameData.imageWidth : 0.5;
+      const pctY = frameData.imageHeight ? (startH / 2 - frameData.imageTop) / frameData.imageHeight : 0.5;
 
       function resize(ev){
         const [canvasW, canvasH] = formats[project.format];
@@ -1835,8 +1842,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
           frameData.imageHeight = nextH;
           frameData.imageWidth = nextH * imageRatio;
         }
-        frameData.imageLeft = (nextW - frameData.imageWidth) / 2;
-        frameData.imageTop = (nextH - frameData.imageHeight) / 2;
+        frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
+        frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
+        clampImagePosition(frameData);
 
         updateFrameElement(frameEl, frameData);
       }
@@ -1882,6 +1890,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       const startX = e.clientX;
       const startY = e.clientY;
       const imageRatio = frameData.photoId ? getPhotoAspectRatio(frameData.photoId) : Math.max(0.5, startW / Math.max(1, startH));
+      // Onthoud het huidige focuspunt (pan) zodat resize dat behoudt i.p.v. hard te centreren.
+      const pctX = frameData.imageWidth ? (startW / 2 - frameData.imageLeft) / frameData.imageWidth : 0.5;
+      const pctY = frameData.imageHeight ? (startH / 2 - frameData.imageTop) / frameData.imageHeight : 0.5;
 
       function resize(ev){
         const dx = (ev.clientX - startX) / visualScale;
@@ -1918,8 +1929,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
             frameData.imageHeight = nextH;
             frameData.imageWidth = nextH * imageRatio;
           }
-          frameData.imageLeft = (nextW - frameData.imageWidth) / 2;
-          frameData.imageTop = (nextH - frameData.imageHeight) / 2;
+          frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
+          frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
+          clampImagePosition(frameData);
         } else {
           frameData.imageWidth = nextW;
           frameData.imageHeight = nextH;
