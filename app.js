@@ -872,12 +872,13 @@ function applyTemplateToActiveSpread(templateId){
   // slotposities later live kan herberekenen.
   activeSpread.slots = template.slots;
 
-  // De globale bar dient ALLEEN als startwaarde: zolang de gebruiker de eigen
-  // slider van deze spread niet heeft aangeraakt (gapUserSet=false), neemt een
-  // nieuwe sjabloonkeuze de actuele globale default over. Heeft de gebruiker de
-  // spread al zelf ingesteld, dan blijft zijn eigen gap onaangetast.
-  if(!activeSpread.gapUserSet) activeSpread.gap = templateGapPx;
-  const spreadGap = typeof activeSpread.gap === "number" ? activeSpread.gap : templateGapPx;
+  // Bij ELKE nieuwe sjabloonkeuze reset de gap naar de actuele globale onderbalk
+  // (templateGapPx) en wordt de spread weer ontgrendeld. Zo opent een ander
+  // sjabloon altijd met de huidige globale Ruimte; een eerdere eigen instelling
+  // van deze spread wordt bewust losgelaten zodra een nieuw sjabloon wordt gekozen.
+  activeSpread.gap = templateGapPx;
+  activeSpread.gapUserSet = false;
+  const spreadGap = templateGapPx;
 
   activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap));
 
