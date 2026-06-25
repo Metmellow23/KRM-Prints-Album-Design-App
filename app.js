@@ -868,12 +868,16 @@ function applyTemplateToActiveSpread(templateId){
   const [spreadWidth, spreadHeight] = formats[project.format];
   const existingPhotoIds = activeSpread.frames.map(frame => frame.photoId).filter(Boolean);
 
-  // Onthoud het sjabloon en de gap op de spread zodat de per-spread Ruimte-slider
-  // de slotposities later live kan herberekenen. Bestaande spread-gap blijft behouden;
-  // anders start hij gelijk aan de globale gap onderin.
+  // Onthoud het sjabloon op de spread zodat de per-spread Ruimte-slider de
+  // slotposities later live kan herberekenen.
   activeSpread.slots = template.slots;
-  if(typeof activeSpread.gap !== "number") activeSpread.gap = templateGapPx;
-  const spreadGap = activeSpread.gap;
+
+  // De globale bar dient ALLEEN als startwaarde: zolang de gebruiker de eigen
+  // slider van deze spread niet heeft aangeraakt (gapUserSet=false), neemt een
+  // nieuwe sjabloonkeuze de actuele globale default over. Heeft de gebruiker de
+  // spread al zelf ingesteld, dan blijft zijn eigen gap onaangetast.
+  if(!activeSpread.gapUserSet) activeSpread.gap = templateGapPx;
+  const spreadGap = typeof activeSpread.gap === "number" ? activeSpread.gap : templateGapPx;
 
   activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap));
 
@@ -1108,7 +1112,10 @@ function setActiveSpread(spreadModel){
 }
 
 function createSpreadModel(){
-  return { id: uid("spread"), frames: [], gap: templateGapPx };
+  // gap start gelijk aan de globale Ruimte-bar (alleen als startwaarde).
+  // gapUserSet=false => deze spread gebruikt nog de globale default; zodra de
+  // gebruiker de eigen slider aanraakt wordt hij volledig onafhankelijk.
+  return { id: uid("spread"), frames: [], gap: templateGapPx, gapUserSet: false };
 }
 
 function buildSpreadView(spreadModel){
@@ -1151,10 +1158,13 @@ function buildSpreadView(spreadModel){
   label.appendChild(gapValue);
 
   // Live: alleen DEZE spread herberekent zijn slotposities met de nieuwe gap.
+  // De gebruiker heeft nu een eigen keuze gemaakt: markeer onafhankelijk zodat
+  // de globale bar deze spread nooit meer als default overschrijft.
   gapSlider.addEventListener("input", e => {
     e.stopPropagation();
     const value = Number(e.target.value || 0);
     spreadModel.gap = value;
+    spreadModel.gapUserSet = true;
     gapValue.textContent = `${value} px`;
     relayoutSpreadWithGap(spreadModel);
   });
@@ -1309,15 +1319,14 @@ templateCount.addEventListener('change', (e) => {
 });
 
 templateGap.addEventListener('input', (e) => {
+  // De globale bar past ALLEEN de default-startwaarde (templateGapPx) en de
+  // sjabloon-previews aan. Bestaande spreads worden bewust NIET aangeraakt:
+  // elke spread bewaart zijn eigen gap onafhankelijk. De default werkt pas door
+  // bij een nieuwe spread of bij een nieuwe sjabloonkeuze op een nog niet door de
+  // gebruiker ingestelde spread.
   templateGapPx = Number(e.target.value || 5);
   templateGapValue.textContent = `${templateGapPx} px`;
   renderTemplates();
-  if(activeSpread && assetMode === 'templates'){
-    const currentView = getSpreadView(activeSpread);
-    if(currentView){
-      // preview side only; existing spread layout remains unchanged until a template is chosen
-    }
-  }
 });
 
 libraryZoom.addEventListener('input', (e) => {
@@ -2160,6 +2169,7 @@ function duplicateSpread(spreadModel){
   const duplicate = createSpreadModel();
   // Neem de eigen gap + het sjabloon over zodat de Ruimte-slider ook hier werkt.
   if(typeof spreadModel.gap === "number") duplicate.gap = spreadModel.gap;
+  duplicate.gapUserSet = !!spreadModel.gapUserSet;
   if(Array.isArray(spreadModel.slots)) duplicate.slots = spreadModel.slots;
   duplicate.frames = spreadModel.frames.map(frame => ({
     ...JSON.parse(JSON.stringify(frame)),
