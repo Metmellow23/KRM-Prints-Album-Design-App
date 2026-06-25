@@ -761,6 +761,30 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   min-width:26px;
   text-align:center;
   z-index:5;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  white-space:nowrap;
+}
+
+/* Per-spread Ruimte (gap) slider in het spreadlabel */
+.spreadGapLabel{
+  margin-left:8px;
+  font-size:11px;
+  font-weight:600;
+  opacity:0.9;
+}
+.spreadGap{
+  width:74px;
+  height:14px;
+  cursor:pointer;
+  accent-color:#fff;
+}
+.spreadGapValue{
+  min-width:30px;
+  font-size:11px;
+  font-weight:600;
+  text-align:left;
 }
 
 /* snijmarge */

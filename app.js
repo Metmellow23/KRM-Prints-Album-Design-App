@@ -730,12 +730,12 @@ function renderTemplates(){
 }
 
 
-function mmToLayout(slot, spreadWidth, spreadHeight){
+function mmToLayout(slot, spreadWidth, spreadHeight, gap = templateGapPx){
   const isFullBleed = slot.style === "full-bleed";
 
   if(isFullBleed && typeof slot.x === "number"){
-    const gapX = templateGapPx / Math.max(1, spreadWidth);
-    const gapY = templateGapPx / Math.max(1, spreadHeight);
+    const gapX = gap / Math.max(1, spreadWidth);
+    const gapY = gap / Math.max(1, spreadHeight);
 
     const touchesLeft = slot.x <= 0.0001;
     const touchesTop = slot.y <= 0.0001;
@@ -764,16 +764,16 @@ function mmToLayout(slot, spreadWidth, spreadHeight){
   const colSpan = Math.max(1, Number(slot.colSpan || 1));
   const rowSpan = Math.max(1, Number(slot.rowSpan || 1));
 
-  const usableWidth = spreadWidth * (1 - outerMargin * 2) - (templateGapPx * (cols - 1));
-  const usableHeight = spreadHeight * (1 - outerMargin * 2) - (templateGapPx * (rows - 1));
+  const usableWidth = spreadWidth * (1 - outerMargin * 2) - (gap * (cols - 1));
+  const usableHeight = spreadHeight * (1 - outerMargin * 2) - (gap * (rows - 1));
 
   const cellWidth = usableWidth / cols;
   const cellHeight = usableHeight / rows;
 
-  const x = spreadWidth * outerMargin + (col * (cellWidth + templateGapPx));
-  const y = spreadHeight * outerMargin + (row * (cellHeight + templateGapPx));
-  const width = (cellWidth * colSpan) + (templateGapPx * (colSpan - 1));
-  const height = (cellHeight * rowSpan) + (templateGapPx * (rowSpan - 1));
+  const x = spreadWidth * outerMargin + (col * (cellWidth + gap));
+  const y = spreadHeight * outerMargin + (row * (cellHeight + gap));
+  const width = (cellWidth * colSpan) + (gap * (colSpan - 1));
+  const height = (cellHeight * rowSpan) + (gap * (rowSpan - 1));
 
   return {
     x: x / spreadWidth,
@@ -784,8 +784,8 @@ function mmToLayout(slot, spreadWidth, spreadHeight){
   };
 }
 
-function createTemplateFrame(slot, spreadWidth, spreadHeight, photoId = null){
-  const layout = mmToLayout(slot, spreadWidth, spreadHeight);
+function createTemplateFrame(slot, spreadWidth, spreadHeight, photoId = null, gap = templateGapPx){
+  const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap);
   const x = Math.round(layout.x * spreadWidth);
   const y = Math.round(layout.y * spreadHeight);
   const width = Math.max(60, Math.round(layout.w * spreadWidth));
@@ -806,6 +806,28 @@ function rerenderSpread(spreadModel){
   if(!view) return;
   view.canvas.querySelectorAll(".photo-frame").forEach(el => el.remove());
   spreadModel.frames.forEach(frame => renderFrame(spreadModel, frame));
+}
+
+// Herberekent ALLEEN de sjabloon-slotposities van DEZE spread met zijn eigen
+// gap (spreadModel.gap). Gebruikt exact hetzelfde pad als het toepassen van een
+// sjabloon (createTemplateFrame + fillFrameWithPhoto), zodat de cover-, schaal-
+// en centreer-wiskunde van de foto's volledig ongewijzigd blijft. Andere spreads
+// worden niet aangeraakt. Vereist dat de spread een sjabloon heeft (spreadModel.slots).
+function relayoutSpreadWithGap(spreadModel){
+  if(!spreadModel || !Array.isArray(spreadModel.slots) || !spreadModel.slots.length) return;
+  const [spreadWidth, spreadHeight] = formats[project.format];
+  const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : templateGapPx;
+  const photoIds = spreadModel.frames.map(frame => frame.photoId);
+
+  spreadModel.frames = spreadModel.slots.map((slot, index) =>
+    createTemplateFrame(slot, spreadWidth, spreadHeight, photoIds[index] || null, gap));
+
+  photoIds.forEach((photoId, index) => {
+    const frame = spreadModel.frames[index];
+    if(frame && photoId) fillFrameWithPhoto(frame, photoId);
+  });
+
+  rerenderSpread(spreadModel);
 }
 
 function fillFrameWithPhoto(frameData, photoId, callback = null){
@@ -845,7 +867,22 @@ function applyTemplateToActiveSpread(templateId){
 
   const [spreadWidth, spreadHeight] = formats[project.format];
   const existingPhotoIds = activeSpread.frames.map(frame => frame.photoId).filter(Boolean);
-  activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null));
+
+  // Onthoud het sjabloon en de gap op de spread zodat de per-spread Ruimte-slider
+  // de slotposities later live kan herberekenen. Bestaande spread-gap blijft behouden;
+  // anders start hij gelijk aan de globale gap onderin.
+  activeSpread.slots = template.slots;
+  if(typeof activeSpread.gap !== "number") activeSpread.gap = templateGapPx;
+  const spreadGap = activeSpread.gap;
+
+  activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap));
+
+  // Houd de Ruimte-slider van deze spread in sync met de gebruikte gap.
+  const gapView = getSpreadView(activeSpread);
+  if(gapView && gapView.gapSlider){
+    gapView.gapSlider.value = String(spreadGap);
+    if(gapView.gapValue) gapView.gapValue.textContent = `${spreadGap} px`;
+  }
 
   existingPhotoIds.forEach((photoId, index) => {
     const frame = activeSpread.frames[index];
@@ -1071,7 +1108,7 @@ function setActiveSpread(spreadModel){
 }
 
 function createSpreadModel(){
-  return { id: uid("spread"), frames: [] };
+  return { id: uid("spread"), frames: [], gap: templateGapPx };
 }
 
 function buildSpreadView(spreadModel){
@@ -1089,6 +1126,38 @@ function buildSpreadView(spreadModel){
   colorInput.value = spreadModel.background || "#ffffff";
   colorInput.style.marginLeft = "8px";
   label.appendChild(colorInput);
+
+  // --- Per-spread Ruimte (gap) slider: kompakt en horizontaal naast de kleur ---
+  if(typeof spreadModel.gap !== "number") spreadModel.gap = templateGapPx;
+
+  const gapLabel = document.createElement("span");
+  gapLabel.className = "spreadGapLabel";
+  gapLabel.textContent = "Ruimte";
+  label.appendChild(gapLabel);
+
+  const gapSlider = document.createElement("input");
+  gapSlider.type = "range";
+  gapSlider.min = "0";
+  gapSlider.max = "40";
+  gapSlider.step = "1";
+  gapSlider.className = "spreadGap";
+  gapSlider.value = String(spreadModel.gap);
+  gapSlider.title = "Ruimte tussen de foto's op deze pagina";
+  label.appendChild(gapSlider);
+
+  const gapValue = document.createElement("span");
+  gapValue.className = "spreadGapValue";
+  gapValue.textContent = `${spreadModel.gap} px`;
+  label.appendChild(gapValue);
+
+  // Live: alleen DEZE spread herberekent zijn slotposities met de nieuwe gap.
+  gapSlider.addEventListener("input", e => {
+    e.stopPropagation();
+    const value = Number(e.target.value || 0);
+    spreadModel.gap = value;
+    gapValue.textContent = `${value} px`;
+    relayoutSpreadWithGap(spreadModel);
+  });
 
   wrapper.appendChild(label);
 
@@ -1116,7 +1185,7 @@ function buildSpreadView(spreadModel){
   wrapper.addEventListener("click", () => setActiveSpread(spreadModel));
   workspace.insertBefore(wrapper, addSpreadBtn);
 
-  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold };
+  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue };
   spreadViews.push(view);
   return view;
 }
@@ -1319,6 +1388,49 @@ function applySnap(x, y, frameData, spreadModel){
   });
 
   return result;
+}
+
+// Snap-variant voor het BOUNDARY-tijdens-resizen. Dezelfde drempel (3) en exact
+// dezelfde snap-doelen als applySnap (canvasranden, canvasmidden, randen + midden
+// van andere kaders), maar nu snapt alleen de BEWEGENDE rand van het kader.
+// Geeft de gesnapte buiten-boundaries terug (x/y/width/height). De cover-, schaal-
+// en centreer-wiskunde van de foto blijft hierdoor volledig ongemoeid: die draait
+// gewoon op de (gesnapte) width/height zoals voorheen.
+function snapResizeBox(curX, curY, curW, curH, moving, spreadModel, frameData){
+  const snapThreshold = 3;
+  const [canvasW, canvasH] = formats[project.format];
+  let left = curX, top = curY, right = curX + curW, bottom = curY + curH;
+
+  const vTargets = [0, canvasW, canvasW / 2];          // verticale randen (x-as)
+  const hTargets = [0, canvasH, canvasH / 2];          // horizontale randen (y-as)
+  spreadModel.frames.forEach(other => {
+    if(other.id === frameData.id) return;
+    vTargets.push(other.x, other.x + other.width,  other.x + other.width  / 2);
+    hTargets.push(other.y, other.y + other.height, other.y + other.height / 2);
+  });
+
+  const snapEdge = (value, targets) => {
+    let best = value, bestDist = snapThreshold;
+    for(const t of targets){
+      const d = Math.abs(value - t);
+      if(d < bestDist){ bestDist = d; best = t; }
+    }
+    return best;
+  };
+
+  // Alleen de bewegende rand snapt; de tegenoverliggende (geankerde) rand blijft vast.
+  if(moving.left)   left   = Math.min(snapEdge(left,   vTargets), right - 50);
+  if(moving.right)  right  = Math.max(snapEdge(right,  vTargets), left + 50);
+  if(moving.top)    top    = Math.min(snapEdge(top,    hTargets), bottom - 50);
+  if(moving.bottom) bottom = Math.max(snapEdge(bottom, hTargets), top + 50);
+
+  // Binnen de albumgrenzen houden.
+  left   = Math.max(0, left);
+  top    = Math.max(0, top);
+  right  = Math.min(canvasW, right);
+  bottom = Math.min(canvasH, bottom);
+
+  return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
 function ensureLibraryIsNotEmpty(){
@@ -1602,6 +1714,13 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       nextW = Math.min(nextW, canvasW - frameData.x);
       nextH = Math.min(nextH, canvasH - frameData.y);
 
+      // Snap de bewegende randen (rechts/onder) — alleen de boundaries.
+      const snapped = snapResizeBox(frameData.x, frameData.y, nextW, nextH, {right:true, bottom:true}, spreadModel, frameData);
+      frameData.x = snapped.x;
+      frameData.y = snapped.y;
+      nextW = snapped.width;
+      nextH = snapped.height;
+
       frameData.width = nextW;
       frameData.height = nextH;
 
@@ -1675,6 +1794,16 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
                               : Math.min(nextH, canvasH - startFrameY);  // onderrand <= canvas
           if(movesAnchor) frameData.y = startFrameY + startH - nextH;    // onderrand vast
         }
+
+        // Snap de bewegende rand — alleen de boundary; de cover-wiskunde blijft ongewijzigd.
+        const moving = dim === 'w'
+          ? (movesAnchor ? {left:true} : {right:true})
+          : (movesAnchor ? {top:true}  : {bottom:true});
+        const snapped = snapResizeBox(frameData.x, frameData.y, nextW, nextH, moving, spreadModel, frameData);
+        frameData.x = snapped.x;
+        frameData.y = snapped.y;
+        nextW = snapped.width;
+        nextH = snapped.height;
 
         frameData.width = nextW;
         frameData.height = nextH;
@@ -1750,6 +1879,14 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         // Alleen de buiten-X/Y verschuiven (tegenoverliggende hoek blijft vast).
         if(movesX) frameData.x = startFrameX + startW - nextW;
         if(movesY) frameData.y = startFrameY + startH - nextH;
+
+        // Snap de bewegende randen — alleen de boundaries; de cover-wiskunde blijft ongewijzigd.
+        const snapped = snapResizeBox(frameData.x, frameData.y, nextW, nextH, {left:movesX, right:!movesX, top:movesY, bottom:!movesY}, spreadModel, frameData);
+        frameData.x = snapped.x;
+        frameData.y = snapped.y;
+        nextW = snapped.width;
+        nextH = snapped.height;
+
         frameData.width = nextW;
         frameData.height = nextH;
 
@@ -2021,6 +2158,9 @@ addSpreadBtn.addEventListener('click', () => {
 function duplicateSpread(spreadModel){
   if(!spreadModel) return;
   const duplicate = createSpreadModel();
+  // Neem de eigen gap + het sjabloon over zodat de Ruimte-slider ook hier werkt.
+  if(typeof spreadModel.gap === "number") duplicate.gap = spreadModel.gap;
+  if(Array.isArray(spreadModel.slots)) duplicate.slots = spreadModel.slots;
   duplicate.frames = spreadModel.frames.map(frame => ({
     ...JSON.parse(JSON.stringify(frame)),
     id: uid('frame')
