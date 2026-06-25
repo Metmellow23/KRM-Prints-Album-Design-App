@@ -1138,7 +1138,7 @@ function buildSpreadView(spreadModel){
   const gapSlider = document.createElement("input");
   gapSlider.type = "range";
   gapSlider.min = "0";
-  gapSlider.max = "40";
+  gapSlider.max = "15";
   gapSlider.step = "1";
   gapSlider.className = "spreadGap";
   gapSlider.value = String(spreadModel.gap);
