@@ -1319,14 +1319,23 @@ templateCount.addEventListener('change', (e) => {
 });
 
 templateGap.addEventListener('input', (e) => {
-  // De globale bar past ALLEEN de default-startwaarde (templateGapPx) en de
-  // sjabloon-previews aan. Bestaande spreads worden bewust NIET aangeraakt:
-  // elke spread bewaart zijn eigen gap onafhankelijk. De default werkt pas door
-  // bij een nieuwe spread of bij een nieuwe sjabloonkeuze op een nog niet door de
-  // gebruiker ingestelde spread.
+  // De globale bar past de default-startwaarde (templateGapPx) en de previews aan.
   templateGapPx = Number(e.target.value || 5);
   templateGapValue.textContent = `${templateGapPx} px`;
   renderTemplates();
+
+  // Live: werk ALLEEN de actieve spread bij, en alleen als die nog niet door de
+  // gebruiker zelf is ingesteld (gapUserSet !== true). Andere, eigen ingestelde
+  // spreads worden bewust NIET aangeraakt; die bewaren hun eigen gap.
+  if(activeSpread && activeSpread.gapUserSet !== true){
+    activeSpread.gap = templateGapPx;
+    const gapView = getSpreadView(activeSpread);
+    if(gapView && gapView.gapSlider){
+      gapView.gapSlider.value = String(templateGapPx);
+      if(gapView.gapValue) gapView.gapValue.textContent = `${templateGapPx} px`;
+    }
+    relayoutSpreadWithGap(activeSpread);
+  }
 });
 
 libraryZoom.addEventListener('input', (e) => {
