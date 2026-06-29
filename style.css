@@ -828,6 +828,12 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   user-select:none;
 }
 
+/* Geselecteerd slot: doelvak voor de volgende bibliotheek-klik */
+.photo-frame.selected-frame{
+  outline:3px solid #3b82f6;
+  outline-offset:-3px;
+}
+
 /* resize handle */
 .photo-frame .resize-handle{
   width:14px;

@@ -585,6 +585,9 @@ const templateCatalog = [
 
 let currentZoom = 100;
 let activeSpread = null;
+// Onthoudt welke template-slot (frame) de gebruiker heeft aangeklikt, zodat de
+// volgende klik in de fotobibliotheek die foto direct in dat vak plaatst.
+let selectedFrameId = null;
 let project = createEmptyProject(formatSelect.value);
 let librarySortMode = "name-asc";
 let introMode = "startup";
@@ -713,7 +716,7 @@ function renderTemplates(){
     preview.className = "template-preview";
 
     template.slots.forEach(slot => {
-      const previewLayout = mmToLayout(slot, 100, 50);
+      const previewLayout = mmToLayout(slot, 100, 50, templateGapPx);
       const slotEl = document.createElement("div");
       slotEl.className = "template-slot" + (slot.style === "full-bleed" ? " full-bleed" : "");
       slotEl.style.left = `${previewLayout.x * 100}%`;
@@ -730,7 +733,7 @@ function renderTemplates(){
 }
 
 
-function mmToLayout(slot, spreadWidth, spreadHeight, gap = templateGapPx){
+function mmToLayout(slot, spreadWidth, spreadHeight, gap){
   const isFullBleed = slot.style === "full-bleed";
 
   if(isFullBleed && typeof slot.x === "number"){
@@ -816,7 +819,10 @@ function rerenderSpread(spreadModel){
 function relayoutSpreadWithGap(spreadModel){
   if(!spreadModel || !Array.isArray(spreadModel.slots) || !spreadModel.slots.length) return;
   const [spreadWidth, spreadHeight] = formats[project.format];
-  const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : templateGapPx;
+  // Gebruik UITSLUITEND de eigen gap van deze spread. Ontbreekt die, val dan
+  // terug op een vaste constante (5) i.p.v. de globale templateGapPx, zodat de
+  // onderbalk deze re-render nooit stiekem live kan beïnvloeden.
+  const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
   const photoIds = spreadModel.frames.map(frame => frame.photoId);
 
   spreadModel.frames = spreadModel.slots.map((slot, index) =>
@@ -870,7 +876,10 @@ function applyTemplateToActiveSpread(templateId){
 
   // Onthoud het sjabloon op de spread zodat de per-spread Ruimte-slider de
   // slotposities later live kan herberekenen.
-  activeSpread.slots = template.slots;
+  // Deep clone: koppel de spread los van het gedeelde catalogus-object zodat
+  // niets in de catalogus (of een preview-render) deze slotcoördinaten via een
+  // gedeelde referentie kan muteren.
+  activeSpread.slots = JSON.parse(JSON.stringify(template.slots));
 
   // Bij ELKE nieuwe sjabloonkeuze reset de gap naar de actuele globale onderbalk
   // (templateGapPx) en wordt de spread weer ontgrendeld. Zo opent een ander
@@ -1320,23 +1329,17 @@ templateCount.addEventListener('change', (e) => {
 });
 
 templateGap.addEventListener('input', (e) => {
-  // De globale bar past de default-startwaarde (templateGapPx) en de previews aan.
+  // Verzegel dit event: laat het niet omhoog bubbelen zodat het nooit per
+  // ongeluk een andere (lokale) slider-listener of re-render-pad kan raken.
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  // De globale bar is ALLEEN een default-startwaarde voor de volgende
+  // sjabloonkeuze. Hij past templateGapPx en de previews aan, maar raakt de
+  // actieve spread bewust NIET live aan: die blijft op zijn plek staan totdat
+  // de gebruiker een sjabloonkaart aanklikt (zie applyTemplateToActiveSpread).
   templateGapPx = Number(e.target.value || 5);
   templateGapValue.textContent = `${templateGapPx} px`;
   renderTemplates();
-
-  // Live: werk ALLEEN de actieve spread bij, en alleen als die nog niet door de
-  // gebruiker zelf is ingesteld (gapUserSet !== true). Andere, eigen ingestelde
-  // spreads worden bewust NIET aangeraakt; die bewaren hun eigen gap.
-  if(activeSpread && activeSpread.gapUserSet !== true){
-    activeSpread.gap = templateGapPx;
-    const gapView = getSpreadView(activeSpread);
-    if(gapView && gapView.gapSlider){
-      gapView.gapSlider.value = String(templateGapPx);
-      if(gapView.gapValue) gapView.gapValue.textContent = `${templateGapPx} px`;
-    }
-    relayoutSpreadWithGap(activeSpread);
-  }
 });
 
 libraryZoom.addEventListener('input', (e) => {
@@ -1491,6 +1494,21 @@ function renderLibrary(){
     img.style.height = `${libraryThumbSize}px`;
     img.title = photo.name;
     img.addEventListener("click", () => {
+      // Slim plaatsen: is er een slot geselecteerd, vul dan exact dat vak met
+      // de aangeklikte foto en hef de selectie op. Anders het oude gedrag:
+      // open een nieuw, los kader (of vul het eerste lege templatevak).
+      if(selectedFrameId !== null){
+        const targetFrame = (activeSpread ? activeSpread.frames : []).find(frame => frame.id === selectedFrameId)
+          || project.spreads.flatMap(spread => spread.frames).find(frame => frame.id === selectedFrameId);
+        if(targetFrame){
+          fillFrameWithPhoto(targetFrame, photo.id);
+          selectedFrameId = null;
+          document.querySelectorAll('.photo-frame.selected-frame').forEach(el => el.classList.remove('selected-frame'));
+          return;
+        }
+        // Geselecteerd vak bestaat niet meer: val terug op het oude gedrag.
+        selectedFrameId = null;
+      }
       if(activeSpread) addPhotoToSpread(activeSpread, photo.id, 50, 50);
     });
     wrapper.appendChild(img);
@@ -1964,6 +1982,8 @@ function renderFrame(spreadModel, frameData){
   const frameEl = document.createElement('div');
   frameEl.className = 'photo-frame' + (!photo ? ' placeholder' : '');
   frameEl.dataset.frameId = frameData.id;
+  // Behoud de visuele selectie als deze frame opnieuw gerenderd wordt.
+  if(frameData.id === selectedFrameId) frameEl.classList.add('selected-frame');
 
   const imgEl = document.createElement('img');
   if(photo?.src){
@@ -2049,6 +2069,18 @@ function renderFrame(spreadModel, frameData){
   view.canvas.appendChild(frameEl);
   updateFrameElement(frameEl, frameData);
   attachFrameInteractions(frameEl, frameData, spreadModel);
+
+  // Slot-selectie: klik op een frame markeert het als doelvak voor de volgende
+  // bibliotheek-klik. Niet tijdens movePhotoMode (dan pant de gebruiker de foto)
+  // en niet op de bedien-elementen (verwijderen/zoom/handles hebben hun eigen
+  // gedrag). De foto-positionering, 8-richtingen-handles en snap blijven intact.
+  frameEl.addEventListener('click', (e) => {
+    if(frameData.movePhotoMode) return;
+    if(e.target.closest('.delete-btn, .move-photo-btn, .zoom-in-btn, .zoom-out-btn, .resize-handle, .crop-width-handle, .crop-height-handle')) return;
+    selectedFrameId = frameData.id;
+    document.querySelectorAll('.photo-frame.selected-frame').forEach(el => el.classList.remove('selected-frame'));
+    frameEl.classList.add('selected-frame');
+  });
 
   imgEl.onload = () => {
     photo.naturalWidth = imgEl.naturalWidth;
