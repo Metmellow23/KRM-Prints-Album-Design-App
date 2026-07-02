@@ -30,9 +30,6 @@ const templateLibrary = document.getElementById("templateLibrary");
 const templateFilter = document.getElementById("templateFilter");
 const librarySortWrap = document.getElementById("librarySortWrap");
 const templateFilterWrap = document.getElementById("templateFilterWrap");
-const templateGapWrap = document.getElementById("templateGapWrap");
-const templateGap = document.getElementById("templateGap");
-const templateGapValue = document.getElementById("templateGapValue");
 const templateCountWrap = document.getElementById("templateCountWrap");
 const templateCount = document.getElementById("templateCount");
 const libraryZoom = document.getElementById("libraryZoom");
@@ -683,7 +680,6 @@ function setAssetMode(mode){
   libraryTitle.textContent = showTemplates ? "Templates" : "Fotobibliotheek";
   librarySortWrap.classList.toggle("hidden", showTemplates);
   templateFilterWrap.classList.toggle("hidden", !showTemplates);
-  templateGapWrap.classList.toggle("hidden", !showTemplates);
   templateCountWrap.classList.toggle("hidden", !showTemplates);
 
   if(showTemplates){
@@ -834,6 +830,55 @@ function relayoutSpreadWithGap(spreadModel){
   });
 
   rerenderSpread(spreadModel);
+}
+
+// Schrijft de actuele (handmatig versleepte/geresizede) geometrie van een frame
+// terug naar het bijbehorende slot, zodat relayoutSpreadWithGap (de Ruimte-slider)
+// daarna van DEZE handmatige maat uitgaat i.p.v. de oorspronkelijke sjabloonmaat.
+// We slaan de "tile" op (frame + huidige gap-inset terug-uitgeklapt) zodat
+// mmToLayout het frame bij dezelfde gap exact reproduceert en bij een andere gap
+// de naden correct herberekent. Raakt de foto-cover/-focus en snap NIET aan.
+function writeBackResizedSlot(spreadModel, frameData){
+  if(!spreadModel) return;
+  // Serbest stil (sjabloonloze) spreads hebben nog geen slots-array. Initialiseer
+  // die hier zodat ook handmatig toegevoegde/verplaatste frames een dynamisch
+  // slot krijgen en de Ruimte-slider (relayoutSpreadWithGap) live blijft werken.
+  if(!Array.isArray(spreadModel.slots)) spreadModel.slots = [];
+  const index = spreadModel.frames.indexOf(frameData);
+  if(index < 0) return;
+
+  const [spreadWidth, spreadHeight] = formats[project.format];
+  const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
+
+  // Gerenderd frame -> genormaliseerde coords (0..1).
+  const nx = frameData.x / spreadWidth;
+  const ny = frameData.y / spreadHeight;
+  const nw = frameData.width / spreadWidth;
+  const nh = frameData.height / spreadHeight;
+
+  const halfGapX = (gap / Math.max(1, spreadWidth)) / 2;
+  const halfGapY = (gap / Math.max(1, spreadHeight)) / 2;
+
+  // Raakt het frame een album-rand? Daar past mmToLayout geen gap toe; intern wel.
+  const touchesLeft   = nx <= halfGapX + 0.001;
+  const touchesTop    = ny <= halfGapY + 0.001;
+  const touchesRight  = (nx + nw) >= 1 - (halfGapX + 0.001);
+  const touchesBottom = (ny + nh) >= 1 - (halfGapY + 0.001);
+
+  // Klap de gap-inset terug uit naar de "tile", binnen [0..1] geklemd.
+  const tileLeft   = touchesLeft   ? 0 : nx - halfGapX;
+  const tileTop    = touchesTop    ? 0 : ny - halfGapY;
+  const tileRight  = touchesRight  ? 1 : (nx + nw) + halfGapX;
+  const tileBottom = touchesBottom ? 1 : (ny + nh) + halfGapY;
+
+  spreadModel.slots[index] = {
+    ...(spreadModel.slots[index] || {}),
+    style: "full-bleed",
+    x: tileLeft,
+    y: tileTop,
+    w: Math.max(0, tileRight - tileLeft),
+    h: Math.max(0, tileBottom - tileTop)
+  };
 }
 
 function fillFrameWithPhoto(frameData, photoId, callback = null){
@@ -1328,20 +1373,6 @@ templateCount.addEventListener('change', (e) => {
   renderTemplates();
 });
 
-templateGap.addEventListener('input', (e) => {
-  // Verzegel dit event: laat het niet omhoog bubbelen zodat het nooit per
-  // ongeluk een andere (lokale) slider-listener of re-render-pad kan raken.
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  // De globale bar is ALLEEN een default-startwaarde voor de volgende
-  // sjabloonkeuze. Hij past templateGapPx en de previews aan, maar raakt de
-  // actieve spread bewust NIET live aan: die blijft op zijn plek staan totdat
-  // de gebruiker een sjabloonkaart aanklikt (zie applyTemplateToActiveSpread).
-  templateGapPx = Number(e.target.value || 5);
-  templateGapValue.textContent = `${templateGapPx} px`;
-  renderTemplates();
-});
-
 libraryZoom.addEventListener('input', (e) => {
   libraryThumbSize = Number(e.target.value || 60);
   renderLibrary();
@@ -1725,6 +1756,8 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     function stop(){
       document.removeEventListener('mousemove', move);
       document.removeEventListener('mouseup', stop);
+      // Verplaatsing (geen pan): leg de nieuwe positie vast in het slot.
+      if(!frameData.movePhotoMode) writeBackResizedSlot(spreadModel, frameData);
     }
 
     document.addEventListener('mousemove', move);
@@ -1787,6 +1820,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     function stop(){
       document.removeEventListener('mousemove', resize);
       document.removeEventListener('mouseup', stop);
+      // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
+      // Ruimte-slider hierna van deze handmatige maat uitgaat.
+      writeBackResizedSlot(spreadModel, frameData);
     }
 
     document.addEventListener('mousemove', resize);
@@ -1870,6 +1906,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       function stop(){
         document.removeEventListener('mousemove', resize);
         document.removeEventListener('mouseup', stop);
+        // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
+        // Ruimte-slider hierna van deze handmatige maat uitgaat.
+        writeBackResizedSlot(spreadModel, frameData);
       }
 
       document.addEventListener('mousemove', resize);
@@ -1962,6 +2001,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       function stop(){
         document.removeEventListener('mousemove', resize);
         document.removeEventListener('mouseup', stop);
+        // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
+        // Ruimte-slider hierna van deze handmatige maat uitgaat.
+        writeBackResizedSlot(spreadModel, frameData);
       }
 
       document.addEventListener('mousemove', resize);
@@ -2157,6 +2199,9 @@ function addPhotoToSpread(spreadModel, photoId, x = 50, y = 50, callback = null)
 
     spreadModel.frames.push(frameData);
     renderFrame(spreadModel, frameData);
+    // Ook zonder sjabloonkeuze meteen slot-geheugen opbouwen, zodat de Ruimte-
+    // slider ook op vrij geplaatste foto's live kan herberekenen.
+    writeBackResizedSlot(spreadModel, frameData);
     renderLibrary();
     if(typeof callback === 'function') callback(frameData);
   };
@@ -2552,8 +2597,6 @@ function initialize(){
   libraryZoom.value = "60";
   libraryThumbSize = 60;
   templateCount.value = String(templatePhotoCount);
-  templateGap.value = String(templateGapPx);
-  templateGapValue.textContent = `${templateGapPx} px`;
   if(spreadBgColor){
     spreadBgColor.value = project.spreadBackground || '#ffffff';
   }

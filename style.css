@@ -830,7 +830,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 
 /* Geselecteerd slot: doelvak voor de volgende bibliotheek-klik */
 .photo-frame.selected-frame{
-  outline:3px solid #3b82f6;
+  outline:3px solid #3b82f6 !important;
   outline-offset:-3px;
 }
 
