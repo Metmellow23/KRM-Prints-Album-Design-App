@@ -813,23 +813,79 @@ function rerenderSpread(spreadModel){
 // en centreer-wiskunde van de foto's volledig ongewijzigd blijft. Andere spreads
 // worden niet aangeraakt. Vereist dat de spread een sjabloon heeft (spreadModel.slots).
 function relayoutSpreadWithGap(spreadModel){
-  if(!spreadModel || !Array.isArray(spreadModel.slots) || !spreadModel.slots.length) return;
+  if(!spreadModel) return;
+
+  // Een uit JSON geladen project vult wel spreadModel.frames, maar laat
+  // spreadModel.slots (de sjabloon-coordinaten) aanvankelijk leeg. Zonder slots
+  // "bevriezen" de foto's bij de eerste slider-beweging omdat alleen aangeklikte
+  // frames via writeBackResizedSlot hun slot vulden. Ontbreekt de slots-array,
+  // is die leeg, of loopt hij niet meer synchroon met het aantal frames? Bouw hem
+  // dan hier direct en SYNCHROON opnieuw op uit de bestaande frame-geometrie,
+  // zodat de gebruiker niet eerst elke foto handmatig hoeft aan te klikken.
+  if(!Array.isArray(spreadModel.slots) || spreadModel.slots.length !== spreadModel.frames.length){
+    spreadModel.slots = [];
+    spreadModel.frames.forEach(frame => {
+      writeBackResizedSlot(spreadModel, frame);
+    });
+  }
+
+  // Nog steeds geen slots (bijv. een lege spread zonder frames)? Dan vroegtijdig stoppen.
+  if(!spreadModel.slots || !spreadModel.slots.length) return;
+
   const [spreadWidth, spreadHeight] = formats[project.format];
   // Gebruik UITSLUITEND de eigen gap van deze spread. Ontbreekt die, val dan
   // terug op een vaste constante (5) i.p.v. de globale templateGapPx, zodat de
   // onderbalk deze re-render nooit stiekem live kan beïnvloeden.
   const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
-  const photoIds = spreadModel.frames.map(frame => frame.photoId);
+  const view = getSpreadView(spreadModel);
+  if(!view) return;
 
-  spreadModel.frames = spreadModel.slots.map((slot, index) =>
-    createTemplateFrame(slot, spreadWidth, spreadHeight, photoIds[index] || null, gap));
+  // LICHTGEWICHT re-layout: verwijder NOOIT DOM-elementen (dat gaf frames nieuwe
+  // uid's en dwong de browser tot een <img>-herbouw die de slider niet bijhield,
+  // waardoor foto's -vooral de rechter- konden "verdwijnen"). We muteren hier de
+  // BESTAANDE frames + hun DOM-nodes in-place; id's blijven ongewijzigd.
+  spreadModel.slots.forEach((slot, index) => {
+    let frame = spreadModel.frames[index];
+    const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap);
 
-  photoIds.forEach((photoId, index) => {
-    const frame = spreadModel.frames[index];
-    if(frame && photoId) fillFrameWithPhoto(frame, photoId);
+    // Ontbreekt er (nog) een frame op deze index, maak er dan één (veiligheidsnet).
+    if(!frame){
+      frame = createTemplateFrame(slot, spreadWidth, spreadHeight, null, gap);
+      spreadModel.frames[index] = frame;
+    } else {
+      // Werk de maten van het BESTAANDE frame bij; raak de id NIET aan.
+      frame.x = Math.round(layout.x * spreadWidth);
+      frame.y = Math.round(layout.y * spreadHeight);
+      frame.width = Math.max(60, Math.round(layout.w * spreadWidth));
+      frame.height = Math.max(60, Math.round(layout.h * spreadHeight));
+    }
+
+    // Herbereken de cover/-focus VOLLEDIG SYNCHROON uit de gecachte natuurlijke maten.
+    if(frame.photoId){
+      const photo = getPhotoById(frame.photoId);
+      if(photo && photo.naturalWidth && photo.naturalHeight){
+        const ratio = photo.naturalWidth / photo.naturalHeight;
+        if((frame.width / frame.height) > ratio){
+          frame.imageWidth = frame.width;
+          frame.imageHeight = frame.width / ratio;
+        } else {
+          frame.imageHeight = frame.height;
+          frame.imageWidth = frame.height * ratio;
+        }
+        frame.imageLeft = (frame.width - frame.imageWidth) / 2;
+        frame.imageTop = (frame.height - frame.imageHeight) / 2;
+      }
+    }
+
+    // Update ALLEEN de CSS-posities van het bestaande element i.p.v. het te slopen
+    // en opnieuw op te bouwen. Bestaat het element nog niet, render het dan één keer.
+    const frameEl = view.canvas.querySelector(`[data-frame-id="${frame.id}"]`);
+    if(frameEl){
+      updateFrameElement(frameEl, frame);
+    } else {
+      renderFrame(spreadModel, frame);
+    }
   });
-
-  rerenderSpread(spreadModel);
 }
 
 // Schrijft de actuele (handmatig versleepte/geresizede) geometrie van een frame
@@ -2209,13 +2265,31 @@ function addPhotoToSpread(spreadModel, photoId, x = 50, y = 50, callback = null)
 }
 
 function addLibraryPhoto(name, src, id = uid('img'), options = {}){
-  project.library.push({
+  const photo = {
     id,
     name,
     src,
     createdAt: options.createdAt || Date.now(),
     captureDate: options.captureDate || null
-  });
+  };
+  project.library.push(photo);
+
+  // Verzegel de natuurlijke afmetingen METEEN bij binnenkomst in de bibliotheek,
+  // zodat photo.naturalWidth/Height nooit undefined blijven. Zo hoeft de synchrone
+  // Ruimte-slider (relayoutSpreadWithGap) nooit op een async onload te wachten en
+  // kan een foto niet "verdwijnen" als de slider vlak na plaatsing beweegt.
+  if(options.naturalWidth && options.naturalHeight){
+    photo.naturalWidth = options.naturalWidth;
+    photo.naturalHeight = options.naturalHeight;
+  } else {
+    const probe = new Image();
+    probe.onload = function(){
+      photo.naturalWidth = probe.naturalWidth;
+      photo.naturalHeight = probe.naturalHeight;
+    };
+    probe.src = src;
+  }
+
   renderLibrary();
 }
 
@@ -2232,9 +2306,20 @@ upload.addEventListener('change', async (e) => {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+    // Meet de natuurlijke afmetingen VOORDAT de foto in de bibliotheek belandt,
+    // zodat naturalWidth/Height al verzegeld zijn op het moment van plaatsing en
+    // de synchrone Ruimte-slider nooit op undefined stuit.
+    const dims = await new Promise((resolve) => {
+      const probe = new Image();
+      probe.onload = () => resolve({ naturalWidth: probe.naturalWidth, naturalHeight: probe.naturalHeight });
+      probe.onerror = () => resolve({});
+      probe.src = src;
+    });
     addLibraryPhoto(file.name, src, uid('img'), {
       createdAt: Date.now(),
-      captureDate
+      captureDate,
+      naturalWidth: dims.naturalWidth,
+      naturalHeight: dims.naturalHeight
     });
   }
 
@@ -2361,8 +2446,22 @@ function normalizeLoadedProject(data){
       name: item.name || 'Onbenoemde foto',
       src: item.src,
       createdAt: item.createdAt || Date.now(),
-      captureDate: item.captureDate || null
+      captureDate: item.captureDate || null,
+      naturalWidth: Number(item.naturalWidth) || null,
+      naturalHeight: Number(item.naturalHeight) || null
     })).filter(item => !!item.src);
+
+    // Verzegel ontbrekende natuurlijke afmetingen ook bij het laden van een project,
+    // zodat de synchrone Ruimte-slider op geladen foto's dezelfde garantie heeft.
+    next.library.forEach(photo => {
+      if(photo.naturalWidth && photo.naturalHeight) return;
+      const probe = new Image();
+      probe.onload = function(){
+        photo.naturalWidth = probe.naturalWidth;
+        photo.naturalHeight = probe.naturalHeight;
+      };
+      probe.src = photo.src;
+    });
   }
 
   if(Array.isArray(data.spreads)){
