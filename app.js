@@ -2761,6 +2761,15 @@ function wizardPhotoPageCount(photoId){
   return wizardState.pages.reduce((n, page) => n + (page.photoIds.includes(photoId) ? 1 : 0), 0);
 }
 
+// 1-gebaseerde paginanummers waarin deze foto zit (voor de "Sayfa N"-badges).
+function wizardPhotoPages(photoId){
+  const pages = [];
+  wizardState.pages.forEach((page, index) => {
+    if(page.photoIds.includes(photoId)) pages.push(index + 1);
+  });
+  return pages;
+}
+
 function assignPhotoToActivePage(photoId){
   const page = wizardState.pages[wizardState.activePage];
   if(!page) return;
@@ -2797,19 +2806,25 @@ function renderWizardStep2(){
         cell.type = "button";
         cell.className = "wizard-thumb";
         cell.title = photo.name;
-        const used = wizardPhotoPageCount(photo.id);
-        if(used) cell.classList.add("used");
+        const pages = wizardPhotoPages(photo.id);
+        if(pages.length) cell.classList.add("used");
 
         const img = document.createElement("img");
         img.src = photo.src;
         img.alt = photo.name;
         cell.appendChild(img);
 
-        if(used){
-          const badge = document.createElement("span");
-          badge.className = "wizard-thumb-badge";
-          badge.textContent = used;
-          cell.appendChild(badge);
+        // Duidelijke "Sayfa N"-badges rechtsboven op de fotokaart.
+        if(pages.length){
+          const badges = document.createElement("div");
+          badges.className = "wizard-thumb-badges";
+          pages.forEach(pageNr => {
+            const badge = document.createElement("span");
+            badge.className = "wizard-thumb-badge";
+            badge.textContent = `Sayfa ${pageNr}`;
+            badges.appendChild(badge);
+          });
+          cell.appendChild(badges);
         }
 
         cell.addEventListener("click", () => assignPhotoToActivePage(photo.id));
