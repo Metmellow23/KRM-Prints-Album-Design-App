@@ -1474,3 +1474,293 @@ body.exporting .crop-height-handle,
 body.exporting .crop-height-handle-top{
   display:none !important;
 }
+
+/* =========================================================================
+   AKILLI ALBÜM KURULUM SİHİRBAZI (3-adımlı wizard)
+   Extra laag boven de bestaande intro-card. De klassieke "instellingen"-modus
+   (openIntroOverlay('edit')) blijft werken via .edit-only / :not(.wizard-mode).
+   ========================================================================= */
+
+/* Bredere kaart wanneer de wizard actief is (stap 2 heeft twee kolommen). */
+.intro-card.wizard-mode{
+  width:min(880px, calc(100vw - 32px));
+}
+
+/* Zichtbaarheid per modus */
+.intro-card.wizard-mode .edit-only{ display:none !important; }
+.intro-card:not(.wizard-mode) .wizard-only{ display:none !important; }
+.intro-card:not(.wizard-mode) .wizard-steps{ display:none !important; }
+
+/* Panelen: alleen het actieve paneel tonen */
+.wizard-panel{ display:none; }
+.wizard-panel.active{ display:block; }
+
+/* Stap-indicator */
+.wizard-steps{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:22px;
+}
+.wizard-dot{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--muted-2);
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.wizard-dot b{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--panel-2);
+  border:1px solid var(--border-2);
+  color:var(--muted-2);
+  font-size:12px;
+  transition:all 0.2s;
+}
+.wizard-dot.active b{
+  background:linear-gradient(180deg, var(--primary) 0%, var(--primary-2) 100%);
+  border-color:var(--primary);
+  color:#fff;
+}
+.wizard-dot.active{ color:var(--text); }
+.wizard-dot.done b{
+  background:var(--primary-2);
+  border-color:var(--primary-2);
+  color:#fff;
+}
+.wizard-line{
+  flex:1;
+  height:1px;
+  background:var(--border-2);
+}
+
+/* Bulk-upload zone (stap 1) */
+.wizard-upload-zone{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:22px 16px;
+  border:1.5px dashed var(--border);
+  border-radius:12px;
+  background:var(--panel-2);
+  color:var(--muted);
+  cursor:pointer;
+  text-align:center;
+  transition:all 0.2s;
+}
+.wizard-upload-zone:hover{
+  border-color:var(--primary);
+  color:var(--text);
+  background:var(--panel-3);
+}
+.wizard-upload-zone span{ font-size:14px; font-weight:600; color:var(--text); }
+.wizard-upload-zone small{ font-size:11px; color:var(--muted-2); }
+#wizardUpload{ display:none; }
+
+/* Stap 2: twee kolommen */
+.wizard-split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-bottom:20px;
+}
+.wizard-col{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.wizard-col-head{
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  color:var(--muted-2);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.wizard-col-count{
+  background:var(--panel-3);
+  border:1px solid var(--border-2);
+  border-radius:10px;
+  padding:1px 8px;
+  color:var(--text);
+  font-size:11px;
+}
+
+/* Bibliotheek-thumbnails links */
+.wizard-library{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(64px, 1fr));
+  gap:8px;
+  max-height:320px;
+  overflow-y:auto;
+  padding:4px;
+  background:var(--panel-2);
+  border:1px solid var(--border-2);
+  border-radius:12px;
+}
+.wizard-thumb{
+  position:relative;
+  padding:0;
+  border:2px solid transparent;
+  border-radius:8px;
+  overflow:hidden;
+  cursor:pointer;
+  background:none;
+  aspect-ratio:1/1;
+  transition:all 0.15s;
+}
+.wizard-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.wizard-thumb:hover{ border-color:var(--primary); transform:translateY(-1px); }
+.wizard-thumb.used{ border-color:var(--primary-2); }
+.wizard-thumb-badge{
+  position:absolute;
+  top:3px;
+  right:3px;
+  min-width:16px;
+  height:16px;
+  padding:0 4px;
+  border-radius:9px;
+  background:var(--primary);
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.wizard-empty{
+  grid-column:1/-1;
+  color:var(--muted-2);
+  font-size:12px;
+  text-align:center;
+  padding:24px 8px;
+}
+
+/* Pagina-pakketten rechts */
+.wizard-pages{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height:320px;
+  overflow-y:auto;
+  padding-right:2px;
+}
+.wizard-page{
+  border:1.5px solid var(--border-2);
+  border-radius:12px;
+  background:var(--panel-2);
+  padding:10px 12px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.wizard-page:hover{ border-color:var(--border); }
+.wizard-page.active{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(59,130,246,0.18);
+}
+.wizard-page-head{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.wizard-page-title{ font-size:13px; font-weight:700; color:var(--text); }
+.wizard-page-count{ font-size:11px; color:var(--muted-2); margin-left:auto; }
+.wizard-page-del{
+  border:none;
+  background:none;
+  color:var(--muted-2);
+  cursor:pointer;
+  font-size:12px;
+  line-height:1;
+  padding:2px 4px;
+  border-radius:6px;
+}
+.wizard-page-del:hover{ color:#fff; background:#dc2626; }
+.wizard-page-strip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.wizard-page-hint{
+  font-size:11px;
+  color:var(--muted-2);
+  font-style:italic;
+}
+.wizard-mini{
+  position:relative;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid var(--border-2);
+  border-radius:6px;
+  overflow:hidden;
+  cursor:pointer;
+  background:none;
+}
+.wizard-mini img{ width:100%; height:100%; object-fit:cover; display:block; }
+.wizard-mini-x{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.55);
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+  opacity:0;
+  transition:opacity 0.15s;
+}
+.wizard-mini:hover .wizard-mini-x{ opacity:1; }
+.wizard-page-warn{
+  margin-top:8px;
+  font-size:11px;
+  color:#f59e0b;
+}
+.wizard-add-page{
+  margin-top:10px;
+  width:100%;
+  justify-content:center;
+}
+
+/* Stap 3: samenvatting */
+.wizard-summary-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:8px 0 4px;
+}
+.wizard-summary-chip{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding:8px 12px;
+  border:1px solid var(--border-2);
+  border-radius:10px;
+  background:var(--panel-2);
+  min-width:78px;
+}
+.wizard-summary-chip b{ font-size:12px; color:var(--text); }
+.wizard-summary-chip span{ font-size:11px; color:var(--muted-2); }
+
+@media (max-width:640px){
+  .wizard-split{ grid-template-columns:1fr; }
+}

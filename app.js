@@ -1138,7 +1138,18 @@ function syncProjectUI(){
 function openIntroOverlay(mode = 'edit'){
   introMode = mode;
   syncProjectUI();
-  startProjectBtn.textContent = mode === 'startup' ? 'Project openen' : 'Instellingen toepassen';
+  const wizard = mode === 'wizard';
+  if(introCard) introCard.classList.toggle('wizard-mode', wizard);
+  if(wizard){
+    // Verse wizard: reset de pagina-indeling en start bij stap 1.
+    resetWizardState();
+    goToWizardStep(1);
+    refreshWizardUI();
+  } else {
+    // Klassieke instellingen-modus: forceer paneel 1 en het juiste knoplabel.
+    wizardPanels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === '1'));
+    startProjectBtn.textContent = mode === 'startup' ? 'Project openen' : 'Instellingen toepassen';
+  }
   introOverlay.classList.remove('hidden');
   setTimeout(() => projectNameInput.focus(), 0);
 }
@@ -2293,8 +2304,11 @@ function addLibraryPhoto(name, src, id = uid('img'), options = {}){
   renderLibrary();
 }
 
-upload.addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files || []);
+// Gedeelde foto-import: gebruikt door de bovenbalk-upload én de wizard-upload.
+// Exact hetzelfde pad als voorheen (EXIF-datum + verzegelde natuurlijke maten),
+// alleen losgetrokken in een herbruikbare functie.
+async function importPhotoFiles(fileList){
+  const files = Array.from(fileList || []);
   if(!files.length) return;
   ensureLibraryIsNotEmpty();
 
@@ -2322,7 +2336,10 @@ upload.addEventListener('change', async (e) => {
       naturalHeight: dims.naturalHeight
     });
   }
+}
 
+upload.addEventListener('change', async (e) => {
+  await importPhotoFiles(e.target.files);
   upload.value = '';
 });
 
@@ -2683,16 +2700,323 @@ async function exportAllSpreadsPDF(){
   }
 }
 
+// ============================================================================
+//  AKILLI ALBÜM KURULUM SİHİRBAZI — 3-adımlı wizard
+//  Een extra laag BOVENOP de bestaande editor. De reeds werkende logica
+//  (8-weg cursor, snap, synchrone relayoutSpreadWithGap, in-place DOM-updates
+//  en klik-om-foto-toe-te-wijzen) blijft volledig ongemoeid: de wizard hergebruikt
+//  uitsluitend bestaande bouwstenen (createSpreadModel via createSpread +
+//  applyTemplateToActiveSpread) om het album kant-en-klaar op te bouwen.
+// ============================================================================
+const introCard = document.getElementById("introCard");
+const wizardUpload = document.getElementById("wizardUpload");
+const wizardUploadText = document.getElementById("wizardUploadText");
+const wizardNext1 = document.getElementById("wizardNext1");
+const wizardNext2 = document.getElementById("wizardNext2");
+const wizardFinishBtn = document.getElementById("wizardFinish");
+const wizardAddPageBtn = document.getElementById("wizardAddPage");
+const wizardLibraryEl = document.getElementById("wizardLibrary");
+const wizardLibCount = document.getElementById("wizardLibCount");
+const wizardPagesEl = document.getElementById("wizardPages");
+const wizardSummary = document.getElementById("wizardSummary");
+const wizardSummaryGrid = document.getElementById("wizardSummaryGrid");
+const wizardDots = Array.from(document.querySelectorAll("#wizardSteps .wizard-dot"));
+const wizardPanels = Array.from(document.querySelectorAll(".wizard-panel"));
+
+let wizardStep = 1;
+// pages: [{ photoIds: [...] }] — activePage bepaalt in welk pakket een aangeklikte
+// foto belandt. Wordt bij elke wizard-opening ververst via resetWizardState().
+const wizardState = { pages: [], activePage: 0 };
+
+function resetWizardState(){
+  wizardState.pages = [{ photoIds: [] }];
+  wizardState.activePage = 0;
+}
+
+function goToWizardStep(step){
+  wizardStep = step;
+  wizardPanels.forEach(panel => panel.classList.toggle("active", Number(panel.dataset.panel) === step));
+  wizardDots.forEach(dot => {
+    const s = Number(dot.dataset.step);
+    dot.classList.toggle("active", s === step);
+    dot.classList.toggle("done", s < step);
+  });
+  if(step === 2) renderWizardStep2();
+  if(step === 3) renderWizardStep3();
+}
+
+function refreshWizardUI(){
+  const hasPhotos = project.library.length > 0;
+  if(wizardNext1) wizardNext1.disabled = !hasPhotos;
+  if(wizardUploadText){
+    wizardUploadText.textContent = hasPhotos
+      ? `${project.library.length} foto's geladen — voeg meer toe of ga verder`
+      : "Toplu Foto Yükle";
+  }
+  if(wizardStep === 2) renderWizardStep2();
+  if(wizardStep === 3) renderWizardStep3();
+}
+
+function wizardPhotoPageCount(photoId){
+  return wizardState.pages.reduce((n, page) => n + (page.photoIds.includes(photoId) ? 1 : 0), 0);
+}
+
+function assignPhotoToActivePage(photoId){
+  const page = wizardState.pages[wizardState.activePage];
+  if(!page) return;
+  // Zelfde foto niet twee keer in hetzelfde pakket.
+  if(page.photoIds.includes(photoId)) return;
+  page.photoIds.push(photoId);
+  renderWizardStep2();
+}
+
+function addWizardPage(){
+  wizardState.pages.push({ photoIds: [] });
+  wizardState.activePage = wizardState.pages.length - 1;
+  renderWizardStep2();
+}
+
+function removeWizardPage(index){
+  wizardState.pages.splice(index, 1);
+  if(!wizardState.pages.length) wizardState.pages.push({ photoIds: [] });
+  wizardState.activePage = Math.min(wizardState.activePage, wizardState.pages.length - 1);
+  renderWizardStep2();
+}
+
+function renderWizardStep2(){
+  if(wizardLibCount) wizardLibCount.textContent = project.library.length;
+
+  // Linkerkolom: bibliotheek-thumbnails (klik = toevoegen aan actieve pagina).
+  if(wizardLibraryEl){
+    wizardLibraryEl.innerHTML = "";
+    if(!project.library.length){
+      wizardLibraryEl.innerHTML = '<div class="wizard-empty">Nog geen foto\'s geladen. Ga terug naar stap 1.</div>';
+    } else {
+      sortLibraryItems(project.library).forEach(photo => {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "wizard-thumb";
+        cell.title = photo.name;
+        const used = wizardPhotoPageCount(photo.id);
+        if(used) cell.classList.add("used");
+
+        const img = document.createElement("img");
+        img.src = photo.src;
+        img.alt = photo.name;
+        cell.appendChild(img);
+
+        if(used){
+          const badge = document.createElement("span");
+          badge.className = "wizard-thumb-badge";
+          badge.textContent = used;
+          cell.appendChild(badge);
+        }
+
+        cell.addEventListener("click", () => assignPhotoToActivePage(photo.id));
+        wizardLibraryEl.appendChild(cell);
+      });
+    }
+  }
+
+  // Rechterkolom: pagina-pakketten.
+  if(wizardPagesEl){
+    wizardPagesEl.innerHTML = "";
+    wizardState.pages.forEach((page, index) => {
+      const card = document.createElement("div");
+      card.className = "wizard-page" + (index === wizardState.activePage ? " active" : "");
+      card.addEventListener("click", () => {
+        wizardState.activePage = index;
+        renderWizardStep2();
+      });
+
+      const head = document.createElement("div");
+      head.className = "wizard-page-head";
+
+      const title = document.createElement("span");
+      title.className = "wizard-page-title";
+      title.textContent = `Sayfa ${index + 1}`;
+      head.appendChild(title);
+
+      const count = document.createElement("span");
+      count.className = "wizard-page-count";
+      count.textContent = `${page.photoIds.length} foto${page.photoIds.length === 1 ? "" : "'s"}`;
+      head.appendChild(count);
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "wizard-page-del";
+      del.textContent = "✕";
+      del.title = "Pagina verwijderen";
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeWizardPage(index);
+      });
+      head.appendChild(del);
+      card.appendChild(head);
+
+      const strip = document.createElement("div");
+      strip.className = "wizard-page-strip";
+      if(!page.photoIds.length){
+        const hint = document.createElement("div");
+        hint.className = "wizard-page-hint";
+        hint.textContent = "Klik links op foto's om ze hier te plaatsen.";
+        strip.appendChild(hint);
+      } else {
+        page.photoIds.forEach((pid, pi) => {
+          const photo = getPhotoById(pid);
+          if(!photo) return;
+          const mini = document.createElement("button");
+          mini.type = "button";
+          mini.className = "wizard-mini";
+          mini.title = "Klik om te verwijderen";
+
+          const im = document.createElement("img");
+          im.src = photo.src;
+          mini.appendChild(im);
+
+          const x = document.createElement("span");
+          x.className = "wizard-mini-x";
+          x.textContent = "×";
+          mini.appendChild(x);
+
+          mini.addEventListener("click", (e) => {
+            e.stopPropagation();
+            page.photoIds.splice(pi, 1);
+            renderWizardStep2();
+          });
+          strip.appendChild(mini);
+        });
+      }
+      card.appendChild(strip);
+
+      if(page.photoIds.length > 6){
+        const warn = document.createElement("div");
+        warn.className = "wizard-page-warn";
+        warn.textContent = "Max 6 foto's per sjabloon — extra foto's worden niet geplaatst.";
+        card.appendChild(warn);
+      }
+
+      wizardPagesEl.appendChild(card);
+    });
+  }
+
+  const canContinue = wizardState.pages.some(p => p.photoIds.length > 0);
+  if(wizardNext2) wizardNext2.disabled = !canContinue;
+}
+
+function renderWizardStep3(){
+  const pages = wizardState.pages.filter(p => p.photoIds.length > 0);
+  const totalPhotos = pages.reduce((n, p) => n + Math.min(6, p.photoIds.length), 0);
+
+  if(wizardSummary){
+    wizardSummary.textContent = pages.length
+      ? `${pages.length} pagina('s) worden opgebouwd met in totaal ${totalPhotos} foto's, elk automatisch in een passend full-bleed sjabloon.`
+      : "Voeg eerst foto's toe aan minstens één pagina in stap 2.";
+  }
+  if(wizardSummaryGrid){
+    wizardSummaryGrid.innerHTML = "";
+    pages.forEach((page, i) => {
+      const n = Math.min(6, page.photoIds.length);
+      const chip = document.createElement("div");
+      chip.className = "wizard-summary-chip";
+      chip.innerHTML = `<b>Sayfa ${i + 1}</b><span>${n} foto${n === 1 ? "" : "'s"}</span>`;
+      wizardSummaryGrid.appendChild(chip);
+    });
+  }
+  if(wizardFinishBtn) wizardFinishBtn.disabled = !pages.length;
+}
+
+// Kies het EERSTE full-bleed sjabloon dat exact bij dit aantal foto's past (1..6).
+function findWizardTemplate(photoCount){
+  const count = Math.min(6, Math.max(1, photoCount));
+  return templateCatalog.find(t => t.category === "full-bleed" && t.slots.length === count) || null;
+}
+
+// Bouwt de spreads op uit de wizard-pagina's. Hergebruikt BESTAANDE bouwstenen:
+//  - createSpread()               -> createSpreadModel + view + actief maken
+//  - applyTemplateToActiveSpread  -> zet slots, frames, gap en giet de foto's in
+// De frames worden vooraf voorzien van alleen een photoId, zodat
+// applyTemplateToActiveSpread ze via existingPhotoIds op slot-index inplaatst.
+function buildAlbumFromWizard(pages){
+  clearWorkspace();
+  project.spreads = [];
+
+  let firstSpread = null;
+  pages.forEach(page => {
+    const spread = createSpread(); // pusht model, bouwt view, zet actief
+    const photoIds = page.photoIds.slice(0, 6);
+
+    // Seed: minimale frames met enkel photoId (worden volledig vervangen door
+    // applyTemplateToActiveSpread, dat er per slot echte template-frames van maakt).
+    spread.frames = photoIds.map(pid => ({ photoId: pid }));
+
+    const template = findWizardTemplate(photoIds.length);
+    if(template){
+      applyTemplateToActiveSpread(template.id);
+    }
+    if(!firstSpread) firstSpread = spread;
+  });
+
+  updateSpreadNumbers();
+  if(firstSpread){
+    setActiveSpread(firstSpread);
+    requestAnimationFrame(() => scrollToSpread(firstSpread, "auto"));
+  }
+  renderLibrary();
+}
+
+function finishWizard(){
+  const pages = wizardState.pages.filter(p => p.photoIds.length > 0);
+  if(!pages.length) return;
+
+  // Naam + formaat toepassen VOOR de opbouw: applyTemplateToActiveSpread rekent
+  // met formats[project.format], dus het formaat moet al vaststaan.
+  project.name = sanitizeProjectName(projectNameInput.value);
+  project.format = formatSelect.value;
+  syncProjectUI();
+
+  buildAlbumFromWizard(pages);
+  closeIntroOverlay();
+}
+
+// --- Wizard-koppelingen ---
+if(wizardUpload){
+  wizardUpload.addEventListener("change", async (e) => {
+    await importPhotoFiles(e.target.files);
+    wizardUpload.value = "";
+    refreshWizardUI();
+  });
+}
+if(wizardNext1) wizardNext1.addEventListener("click", () => goToWizardStep(2));
+if(wizardNext2) wizardNext2.addEventListener("click", () => goToWizardStep(3));
+if(wizardAddPageBtn) wizardAddPageBtn.addEventListener("click", addWizardPage);
+if(wizardFinishBtn) wizardFinishBtn.addEventListener("click", finishWizard);
+
+// Terug-knoppen binnen de wizard.
+document.querySelectorAll(".wizard-back").forEach(btn => {
+  btn.addEventListener("click", () => goToWizardStep(Number(btn.dataset.back)));
+});
+
+// Klikbare stap-indicator: alleen terug of naar een reeds bereikbare stap.
+wizardDots.forEach(dot => {
+  dot.addEventListener("click", () => {
+    const target = Number(dot.dataset.step);
+    if(target < wizardStep){
+      goToWizardStep(target);
+    } else if(target === 2 && project.library.length){
+      goToWizardStep(2);
+    } else if(target === 3 && wizardState.pages.some(p => p.photoIds.length)){
+      goToWizardStep(3);
+    }
+  });
+});
+
 function initialize(){
   isLightTheme = localStorage.getItem("albumTheme") === "light";
   applyThemePreference();
 
   project = createEmptyProject(formatSelect.value);
   syncProjectUI();
-  openIntroOverlay('startup');
-  const firstSpread = createSpread();
-  setActiveSpread(firstSpread);
-  requestAnimationFrame(() => scrollToSpread(firstSpread, "auto"));
   libraryZoom.value = "60";
   libraryThumbSize = 60;
   templateCount.value = String(templatePhotoCount);
@@ -2704,7 +3028,12 @@ function initialize(){
   setAssetMode('photos');
   applySpreadBackgroundToAll();
   applyZoom();
-  requestAnimationFrame(() => updateActiveSpreadFromScroll());
+
+  // Start de Akıllı Albüm Kurulum Sihirbazı i.p.v. meteen een lege spread te
+  // maken. De spreads worden pas gebouwd wanneer de gebruiker de wizard afrondt
+  // (of een bestaand project laadt).
+  introMode = "wizard";
+  openIntroOverlay('wizard');
 }
 
 initialize();

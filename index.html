@@ -96,42 +96,101 @@
 </div>
 
 <div id="introOverlay">
-  <div class="intro-card">
-    <h1 class="intro-title">Album Designer</h1>
-    <p class="intro-subtitle">Kies eerst de basisinstellingen voor dit project. Daarna blijft de bovenbalk compacter en overzichtelijker.</p>
-    <div class="intro-grid">
-      <div class="field-group">
-        <label for="startupProjectName">Projectnaam</label>
-        <input id="startupProjectName" type="text" placeholder="Bijv. Trouwalbum Emma & Sam" value="Nieuw album">
+  <div class="intro-card" id="introCard">
+
+    <div class="wizard-steps" id="wizardSteps">
+      <div class="wizard-dot active" data-step="1"><b>1</b><span>Instellingen</span></div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" data-step="2"><b>2</b><span>Pagina's</span></div>
+      <div class="wizard-line"></div>
+      <div class="wizard-dot" data-step="3"><b>3</b><span>Genereren</span></div>
+    </div>
+
+    <!-- STAP 1: instellingen + bulk upload -->
+    <div class="wizard-panel active" data-panel="1">
+      <h1 class="intro-title">Album Designer</h1>
+      <p class="intro-subtitle">Kies de basisinstellingen en laad je foto's. Daarna bouwt de wizard je album automatisch op.</p>
+      <div class="intro-grid">
+        <div class="field-group">
+          <label for="startupProjectName">Projectnaam</label>
+          <input id="startupProjectName" type="text" placeholder="Bijv. Trouwalbum Emma & Sam" value="Nieuw album">
+        </div>
+        <div class="field-group">
+          <label for="startupFormat">Formaat</label>
+          <select id="startupFormat">
+            <option value="306x156">15×15 cm</option>
+            <option value="406x156">15×20 cm</option>
+            <option value="456x156">15×22 cm</option>
+            <option value="406x206">20×20 cm</option>
+            <option value="606x206" selected>20×30 cm</option>
+            <option value="506x256">25×25 cm</option>
+            <option value="756x256">25×38 cm</option>
+            <option value="606x306">30×30 cm</option>
+            <option value="806x306">30×40 cm</option>
+            <option value="906x306">30×45 cm</option>
+          </select>
+        </div>
+        <div class="field-group wizard-only">
+          <label>Foto's</label>
+          <label class="wizard-upload-zone" for="wizardUpload" id="wizardUploadZone">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span id="wizardUploadText">Toplu Foto Yükle</span>
+            <small>Klik om meerdere foto's tegelijk te kiezen</small>
+          </label>
+          <input type="file" id="wizardUpload" multiple>
+        </div>
       </div>
-      <div class="field-group">
-        <label for="startupFormat">Formaat</label>
-        <select id="startupFormat">
-          <option value="306x156">15×15 cm</option>
-          <option value="406x156">15×20 cm</option>
-          <option value="456x156">15×22 cm</option>
-          <option value="406x206">20×20 cm</option>
-          <option value="606x206" selected>20×30 cm</option>
-          <option value="506x256">25×25 cm</option>
-          <option value="756x256">25×38 cm</option>
-          <option value="606x306">30×30 cm</option>
-          <option value="806x306">30×40 cm</option>
-          <option value="906x306">30×45 cm</option>
-        </select>
+      <div class="intro-actions">
+        <button class="btn btn-primary edit-only" id="startProjectBtn">Instellingen toepassen</button>
+        <button class="btn btn-primary wizard-only" id="wizardNext1" disabled>Devam Et</button>
+      </div>
+      <div class="intro-secondary">
+        <span class="intro-note">Of laad direct een bestaand projectbestand.</span>
+        <div>
+          <label class="btn" for="introLoadProjectInput">Project laden</label>
+          <input type="file" id="introLoadProjectInput" accept="application/json">
+        </div>
       </div>
     </div>
-    <div class="intro-actions">
-      <button class="btn btn-primary" id="startProjectBtn">Project openen</button>
-    </div>
-    <div class="intro-secondary">
-      <span class="intro-note">Of laad direct een bestaand projectbestand.</span>
-      <div>
-        <label class="btn" for="introLoadProjectInput">Project laden</label>
-        <input type="file" id="introLoadProjectInput" accept="application/json">
+
+    <!-- STAP 2: foto's verdelen over pagina-pakketten -->
+    <div class="wizard-panel wizard-only" data-panel="2">
+      <h1 class="intro-title">Verdeel je foto's</h1>
+      <p class="intro-subtitle">Selecteer rechts een pagina en klik links op foto's om ze in dat pakket te plaatsen.</p>
+      <div class="wizard-split">
+        <div class="wizard-col">
+          <div class="wizard-col-head">Fotobibliotheek <span class="wizard-col-count" id="wizardLibCount">0</span></div>
+          <div class="wizard-library" id="wizardLibrary"></div>
+        </div>
+        <div class="wizard-col">
+          <div class="wizard-col-head">Pagina-pakketten</div>
+          <div class="wizard-pages" id="wizardPages"></div>
+          <button class="btn wizard-add-page" id="wizardAddPage" type="button">+ Sayfa Ekle</button>
+        </div>
+      </div>
+      <div class="intro-actions">
+        <button class="btn wizard-back" data-back="1" type="button">Terug</button>
+        <button class="btn btn-primary" id="wizardNext2" type="button">Devam Et</button>
       </div>
     </div>
+
+    <!-- STAP 3: automatisch opbouwen -->
+    <div class="wizard-panel wizard-only" data-panel="3">
+      <h1 class="intro-title">Klaar om te bouwen</h1>
+      <p class="intro-subtitle" id="wizardSummary">Voeg eerst foto's toe aan minstens één pagina in stap 2.</p>
+      <div class="wizard-summary-grid" id="wizardSummaryGrid"></div>
+      <div class="intro-actions">
+        <button class="btn wizard-back" data-back="2" type="button">Terug</button>
+        <button class="btn btn-primary" id="wizardFinish" type="button">Albümü Otomatik Oluştur</button>
+      </div>
+    </div>
+
   </div>
-</div></div>
+</div>
 <input type="file" id="loadProjectInput" accept="application/json">
 
 <div id="workspace">
