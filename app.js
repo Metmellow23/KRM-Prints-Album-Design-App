@@ -729,22 +729,27 @@ function renderTemplates(){
 }
 
 
-function mmToLayout(slot, spreadWidth, spreadHeight, gap){
+function mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx = 0){
   const isFullBleed = slot.style === "full-bleed";
 
   if(isFullBleed && typeof slot.x === "number"){
     const gapX = gap / Math.max(1, spreadWidth);
     const gapY = gap / Math.max(1, spreadHeight);
+    // Kenar Boşluğu: buiteninset (0..1) waarmee slots die de albumrand raken
+    // vanaf díe rand naar binnen krimpen. Binnenranden (naden) blijven de gap
+    // volgen; alleen de buitenrand wordt door padding beïnvloed.
+    const padX = paddingPx / Math.max(1, spreadWidth);
+    const padY = paddingPx / Math.max(1, spreadHeight);
 
     const touchesLeft = slot.x <= 0.0001;
     const touchesTop = slot.y <= 0.0001;
     const touchesRight = (slot.x + slot.w) >= 0.9999;
     const touchesBottom = (slot.y + slot.h) >= 0.9999;
 
-    const leftInset = touchesLeft ? 0 : gapX / 2;
-    const rightInset = touchesRight ? 0 : gapX / 2;
-    const topInset = touchesTop ? 0 : gapY / 2;
-    const bottomInset = touchesBottom ? 0 : gapY / 2;
+    const leftInset = touchesLeft ? padX : gapX / 2;
+    const rightInset = touchesRight ? padX : gapX / 2;
+    const topInset = touchesTop ? padY : gapY / 2;
+    const bottomInset = touchesBottom ? padY : gapY / 2;
 
     return {
       x: slot.x + leftInset,
@@ -783,8 +788,8 @@ function mmToLayout(slot, spreadWidth, spreadHeight, gap){
   };
 }
 
-function createTemplateFrame(slot, spreadWidth, spreadHeight, photoId = null, gap = templateGapPx){
-  const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap);
+function createTemplateFrame(slot, spreadWidth, spreadHeight, photoId = null, gap = templateGapPx, paddingPx = 0){
+  const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx);
   const x = Math.round(layout.x * spreadWidth);
   const y = Math.round(layout.y * spreadHeight);
   const width = Math.max(60, Math.round(layout.w * spreadWidth));
@@ -837,6 +842,8 @@ function relayoutSpreadWithGap(spreadModel){
   // terug op een vaste constante (5) i.p.v. de globale templateGapPx, zodat de
   // onderbalk deze re-render nooit stiekem live kan beïnvloeden.
   const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
+  // Kenar Boşluğu van DEZE spread: 0 = ongewijzigd gedrag (full-bleed tot rand).
+  const padding = typeof spreadModel.padding === "number" ? spreadModel.padding : 0;
   const view = getSpreadView(spreadModel);
   if(!view) return;
 
@@ -846,11 +853,11 @@ function relayoutSpreadWithGap(spreadModel){
   // BESTAANDE frames + hun DOM-nodes in-place; id's blijven ongewijzigd.
   spreadModel.slots.forEach((slot, index) => {
     let frame = spreadModel.frames[index];
-    const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap);
+    const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, padding);
 
     // Ontbreekt er (nog) een frame op deze index, maak er dan één (veiligheidsnet).
     if(!frame){
-      frame = createTemplateFrame(slot, spreadWidth, spreadHeight, null, gap);
+      frame = createTemplateFrame(slot, spreadWidth, spreadHeight, null, gap, padding);
       spreadModel.frames[index] = frame;
     } else {
       // Werk de maten van het BESTAANDE frame bij; raak de id NIET aan.
@@ -914,12 +921,18 @@ function writeBackResizedSlot(spreadModel, frameData){
 
   const halfGapX = (gap / Math.max(1, spreadWidth)) / 2;
   const halfGapY = (gap / Math.max(1, spreadHeight)) / 2;
+  // Kenar Boşluğu meenemen in de rand-detectie: een frame dat door padding al
+  // p` px van de albumrand af staat, moet nog steeds als "raakt de rand" gelden
+  // zodat de tile tot 0/1 uitklapt en mmToLayout de padding daarna schoon
+  // opnieuw toepast (geen dubbele inset / drift). padding=0 => ongewijzigd.
+  const padX = (spreadModel.padding || 0) / Math.max(1, spreadWidth);
+  const padY = (spreadModel.padding || 0) / Math.max(1, spreadHeight);
 
   // Raakt het frame een album-rand? Daar past mmToLayout geen gap toe; intern wel.
-  const touchesLeft   = nx <= halfGapX + 0.001;
-  const touchesTop    = ny <= halfGapY + 0.001;
-  const touchesRight  = (nx + nw) >= 1 - (halfGapX + 0.001);
-  const touchesBottom = (ny + nh) >= 1 - (halfGapY + 0.001);
+  const touchesLeft   = nx <= halfGapX + padX + 0.001;
+  const touchesTop    = ny <= halfGapY + padY + 0.001;
+  const touchesRight  = (nx + nw) >= 1 - (halfGapX + padX + 0.001);
+  const touchesBottom = (ny + nh) >= 1 - (halfGapY + padY + 0.001);
 
   // Klap de gap-inset terug uit naar de "tile", binnen [0..1] geklemd.
   const tileLeft   = touchesLeft   ? 0 : nx - halfGapX;
@@ -990,7 +1003,8 @@ function applyTemplateToActiveSpread(templateId){
   activeSpread.gapUserSet = false;
   const spreadGap = templateGapPx;
 
-  activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap));
+  const spreadPadding = typeof activeSpread.padding === "number" ? activeSpread.padding : 0;
+  activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap, spreadPadding));
 
   // Houd de Ruimte-slider van deze spread in sync met de gebruikte gap.
   const gapView = getSpreadView(activeSpread);
@@ -1237,7 +1251,9 @@ function createSpreadModel(){
   // gap start gelijk aan de globale Ruimte-bar (alleen als startwaarde).
   // gapUserSet=false => deze spread gebruikt nog de globale default; zodra de
   // gebruiker de eigen slider aanraakt wordt hij volledig onafhankelijk.
-  return { id: uid("spread"), frames: [], gap: templateGapPx, gapUserSet: false };
+  // padding = per-spread buiteninset (Kenar Boşluğu): afstand van de foto's tot
+  // de albumrand. Standaard 0 = full-bleed tot de rand, net als voorheen.
+  return { id: uid("spread"), frames: [], gap: templateGapPx, gapUserSet: false, padding: 0 };
 }
 
 function buildSpreadView(spreadModel){
@@ -1291,6 +1307,39 @@ function buildSpreadView(spreadModel){
     relayoutSpreadWithGap(spreadModel);
   });
 
+  // --- Per-spread Kenar Boşluğu (padding) slider: buiteninset tot de albumrand ---
+  if(typeof spreadModel.padding !== "number") spreadModel.padding = 0;
+
+  const padLabel = document.createElement("span");
+  padLabel.className = "spreadPadLabel";
+  padLabel.textContent = "Kenar Boşluğu";
+  padLabel.style.marginLeft = "12px";
+  label.appendChild(padLabel);
+
+  const padSlider = document.createElement("input");
+  padSlider.type = "range";
+  padSlider.min = "0";
+  padSlider.max = "30";
+  padSlider.step = "1";
+  padSlider.className = "spreadPaddingSlider";
+  padSlider.value = String(spreadModel.padding || 0);
+  padSlider.title = "Afstand van de foto's tot de albumrand op deze pagina";
+  label.appendChild(padSlider);
+
+  const padValue = document.createElement("span");
+  padValue.className = "spreadPadValue";
+  padValue.textContent = `${spreadModel.padding || 0} px`;
+  label.appendChild(padValue);
+
+  // Live: alleen DEZE spread krimpt vanaf de albumrand met de nieuwe padding.
+  padSlider.addEventListener("input", e => {
+    e.stopPropagation();
+    const value = Number(e.target.value || 0);
+    spreadModel.padding = value;
+    padValue.textContent = `${value} px`;
+    relayoutSpreadWithGap(spreadModel);
+  });
+
   wrapper.appendChild(label);
 
   colorInput.addEventListener("input", e => {
@@ -1317,7 +1366,7 @@ function buildSpreadView(spreadModel){
   wrapper.addEventListener("click", () => setActiveSpread(spreadModel));
   workspace.insertBefore(wrapper, addSpreadBtn);
 
-  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue };
+  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue, padSlider, padValue };
   spreadViews.push(view);
   return view;
 }
