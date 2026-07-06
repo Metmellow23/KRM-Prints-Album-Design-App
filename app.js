@@ -2997,29 +2997,48 @@ function buildAlbumFromWizard(pages){
 }
 
 function finishWizard(){
+  console.log("WIZARD: Finish button clicked!");
+  console.log("WIZARD: Current wizardState pages:", wizardState.pages);
+
   // Güvenlik Ağı: Önce içi dolu sayfaları süz. Süzülemezse (foto atanmamışsa)
   // ama kullanıcı arayüzde sayfaları görüp onayladıysa, boş dahi olsalar tüm
   // sayfaları kurtarma moduna alıp albümü yine de oluştur — buton hiçbir
   // koşulda sessizce çıkmasın.
   let pages = wizardState.pages.filter(p => p.photoIds && p.photoIds.length > 0);
+  console.log("WIZARD: Filtered pages with photos:", pages);
 
   if(!pages.length && wizardState.pages.length > 0){
+    console.log("WIZARD: Recovery mode activated, using all empty/mixed pages.");
     pages = wizardState.pages;
   }
 
   if(!pages.length){
+    console.warn("WIZARD: No pages found to build!");
     alert("Lütfen en az bir sayfaya fotoğraf ekleyin veya yeni bir sayfa açın.");
     return;
   }
 
-  // Naam + formaat toepassen VOOR de opbouw: applyTemplateToActiveSpread rekent
-  // met formats[project.format], dus het formaat moet al vaststaan.
-  project.name = sanitizeProjectName(projectNameInput.value);
-  project.format = formatSelect.value;
-  syncProjectUI();
+  // Bulletproof: elke fout tijdens de opbouw wordt zichtbaar gemaakt i.p.v. de
+  // wizard stil te laten hangen. Zo zien we in de browserconsole (en via alert)
+  // exact welke stap eventueel crasht, en blijft de overlay niet vastzitten.
+  try {
+    // Naam + formaat toepassen VOOR de opbouw: applyTemplateToActiveSpread rekent
+    // met formats[project.format], dus het formaat moet al vaststaan.
+    project.name = sanitizeProjectName(projectNameInput.value);
+    project.format = formatSelect.value;
+    syncProjectUI();
+    console.log("WIZARD: Project UI synced successfully.");
 
-  buildAlbumFromWizard(pages);
-  closeIntroOverlay();
+    console.log("WIZARD: Starting buildAlbumFromWizard...");
+    buildAlbumFromWizard(pages);
+    console.log("WIZARD: buildAlbumFromWizard finished without crashing.");
+
+    closeIntroOverlay();
+    console.log("WIZARD: Intro overlay closed.");
+  } catch (err) {
+    console.error("CRITICAL WIZARD CRASH DETECTED IN BROWSER:", err);
+    alert("Sihirbaz albümü oluştururken bir hata oluştu: " + (err && err.message ? err.message : err));
+  }
 }
 
 // --- Wizard-koppelingen ---
