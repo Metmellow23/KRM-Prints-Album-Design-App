@@ -540,6 +540,13 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   filter:grayscale(0.3);
 }
 
+/* Amber "Sihirbaza Geri Dön"-knop in de topbar (live-preview terugkeer). De
+   gradient staat inline; hover licht hem alleen subtiel op via filter zodat de
+   inline achtergrond niet overschreven hoeft te worden. */
+#wizardReturnBtn{ color:#fff; font-weight:600; }
+#wizardReturnBtn:hover{ filter:brightness(1.08); }
+#wizardReturnBtn svg{ vertical-align:middle; margin-right:2px; }
+
 .btn-danger{
   background:linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
   border-color:#ef4444;

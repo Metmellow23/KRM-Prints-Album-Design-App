@@ -914,13 +914,23 @@ function syncProjectUI(){
 function openIntroOverlay(mode = 'edit'){
   introMode = mode;
   syncProjectUI();
+  // Zodra de overlay opent zijn we niet langer in "live-preview review": verberg
+  // de terugkeer-knop (de terugkeer-handler heeft hem al verborgen; dit dekt ook
+  // een verse wizard/edit terwijl de knop nog zichtbaar zou staan).
+  if(wizardReturnBtn) wizardReturnBtn.classList.add('hidden');
   const wizard = mode === 'wizard';
   if(introCard) introCard.classList.toggle('wizard-mode', wizard);
   if(wizard){
-    // Verse wizard: reset de pagina-indeling en start bij stap 1.
-    resetWizardState();
-    goToWizardStep(1);
-    refreshWizardUI();
+    if(wizardPreserveOnOpen){
+      // Terug vanuit de live-preview: pagina-indeling behouden, NIET resetten en
+      // niet naar stap 1 springen — de aanroeper zet ons zo op stap 2.
+      wizardPreserveOnOpen = false;
+    } else {
+      // Verse wizard: reset de pagina-indeling en start bij stap 1.
+      resetWizardState();
+      goToWizardStep(1);
+      refreshWizardUI();
+    }
   } else {
     // Klassieke instellingen-modus: forceer paneel 1 en het juiste knoplabel.
     wizardPanels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === '1'));
@@ -2535,8 +2545,14 @@ const wizardSummary = document.getElementById("wizardSummary");
 const wizardSummaryGrid = document.getElementById("wizardSummaryGrid");
 const wizardDots = Array.from(document.querySelectorAll("#wizardSteps .wizard-dot"));
 const wizardPanels = Array.from(document.querySelectorAll(".wizard-panel"));
+// Amber "Sihirbaza Geri Dön"-knop in de topbar: alleen zichtbaar tijdens de
+// live-preview na stap 3, zodat de gebruiker terug kan naar stap 2.
+const wizardReturnBtn = document.getElementById("wizardReturnBtn");
 
 let wizardStep = 1;
+// True zolang we vanuit de live-preview terugkeren naar de wizard: dan mag
+// openIntroOverlay de reeds ingedeelde pagina's NIET resetten.
+let wizardPreserveOnOpen = false;
 // pages: [{ photoIds: [...] }] — activePage bepaalt in welk pakket een aangeklikte
 // foto belandt. Wordt bij elke wizard-opening ververst via resetWizardState().
 const wizardState = { pages: [], activePage: 0 };
@@ -2555,7 +2571,13 @@ function goToWizardStep(step){
     dot.classList.toggle("done", s < step);
   });
   if(step === 2) renderWizardStep2();
-  if(step === 3) renderWizardStep3();
+  if(step === 3){
+    // Nieuwe live-preview flow: geen grijs samenvattingspaneel meer. Stap 3
+    // bouwt direct het album op en sluit de overlay, zodat de gebruiker meteen
+    // het echte #workspace met alle foto's ziet. finishWizard toont daarna de
+    // amber "Sihirbaza Geri Dön"-knop om terug te keren naar stap 2.
+    finishWizard();
+  }
 }
 
 function refreshWizardUI(){
@@ -2847,6 +2869,10 @@ function finishWizard(){
 
     closeIntroOverlay();
     console.log("WIZARD: Intro overlay closed.");
+
+    // Live-preview modus: toon de amber terugkeer-knop in de topbar zodat de
+    // gebruiker het gegenereerde album kan bekijken én terug kan naar stap 2.
+    if(wizardReturnBtn) wizardReturnBtn.classList.remove("hidden");
   } catch (err) {
     console.error("CRITICAL WIZARD CRASH DETECTED IN BROWSER:", err);
     alert("Sihirbaz albümü oluştururken bir hata oluştu: " + (err && err.message ? err.message : err));
@@ -2865,6 +2891,16 @@ if(wizardNext1) wizardNext1.addEventListener("click", () => goToWizardStep(2));
 if(wizardNext2) wizardNext2.addEventListener("click", () => goToWizardStep(3));
 if(wizardAddPageBtn) wizardAddPageBtn.addEventListener("click", addWizardPage);
 if(wizardFinishBtn) wizardFinishBtn.addEventListener("click", finishWizard);
+
+// Terug vanuit de live-preview naar de wizard (stap 2), met behoud van de
+// reeds ingedeelde pagina's: verberg de knop, heropen de overlay ZONDER reset
+// en land direct op stap 2 waar de fotostroken staan.
+if(wizardReturnBtn) wizardReturnBtn.addEventListener("click", () => {
+  wizardReturnBtn.classList.add("hidden");
+  wizardPreserveOnOpen = true;
+  openIntroOverlay("wizard");
+  goToWizardStep(2);
+});
 
 // --- Galeri yakınlaştırma (Grid Scaler) ---
 // Stap 2'deki sol fotoğraf galerisini kademeli büyütüp küçültür. Yalnızca CSS
