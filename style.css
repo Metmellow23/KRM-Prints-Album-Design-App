@@ -531,6 +531,15 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   border-color:#60a5fa;
 }
 
+/* Zichtbare disabled-toestand: voorheen zag een disabled knop er identiek uit
+   als een actieve, waardoor "ik klik maar er gebeurt niets" onzichtbaar bleef. */
+.btn:disabled,
+.btn-primary:disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+  filter:grayscale(0.3);
+}
+
 .btn-danger{
   background:linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
   border-color:#ef4444;

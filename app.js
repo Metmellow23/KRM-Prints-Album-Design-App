@@ -2940,7 +2940,12 @@ function renderWizardStep3(){
       wizardSummaryGrid.appendChild(chip);
     });
   }
-  if(wizardFinishBtn) wizardFinishBtn.disabled = !pages.length;
+  // De blauwe "Albümü Otomatik Oluştur"-knop NOOIT disabled zetten: een disabled
+  // knop slikt de klik geluidloos in (zonder :disabled-styling ziet hij er zelfs
+  // identiek uit), waardoor de gebruiker "er gebeurt niets" ervaart. Laat elke
+  // klik finishWizard bereiken; die valideert zelf (alert bij écht leeg, anders
+  // recovery-modus) en sluit de wizard.
+  if(wizardFinishBtn) wizardFinishBtn.disabled = false;
 }
 
 // Kies het EERSTE full-bleed sjabloon dat exact bij dit aantal foto's past (1..6).
@@ -2961,16 +2966,25 @@ function buildAlbumFromWizard(pages){
   let firstSpread = null;
   pages.forEach(page => {
     const spread = createSpread(); // pusht model, bouwt view, zet actief
-    const photoIds = page.photoIds.slice(0, 6);
+    const photoIds = Array.isArray(page.photoIds) ? page.photoIds.slice(0, 6) : [];
 
     // Seed: minimale frames met enkel photoId (worden volledig vervangen door
     // applyTemplateToActiveSpread, dat er per slot echte template-frames van maakt).
     spread.frames = photoIds.map(pid => ({ photoId: pid }));
 
-    const template = findWizardTemplate(photoIds.length);
-    if(template){
-      applyTemplateToActiveSpread(template.id);
+    // Güvenlik Ağı: Sayfada foto varsa şablon bul ve uygula.
+    if(photoIds.length > 0){
+      const template = findWizardTemplate(photoIds.length);
+      if(template){
+        applyTemplateToActiveSpread(template.id);
+      }
+    } else {
+      // Sayfa tamamen boşsa şablon motorunu pas geç; findWizardTemplate(0) /
+      // applyTemplateToActiveSpread çağrılmadan temiz, serbest bir spread bırak.
+      spread.slots = [];
+      rerenderSpread(spread);
     }
+
     if(!firstSpread) firstSpread = spread;
   });
 
@@ -2983,8 +2997,20 @@ function buildAlbumFromWizard(pages){
 }
 
 function finishWizard(){
-  const pages = wizardState.pages.filter(p => p.photoIds.length > 0);
-  if(!pages.length) return;
+  // Güvenlik Ağı: Önce içi dolu sayfaları süz. Süzülemezse (foto atanmamışsa)
+  // ama kullanıcı arayüzde sayfaları görüp onayladıysa, boş dahi olsalar tüm
+  // sayfaları kurtarma moduna alıp albümü yine de oluştur — buton hiçbir
+  // koşulda sessizce çıkmasın.
+  let pages = wizardState.pages.filter(p => p.photoIds && p.photoIds.length > 0);
+
+  if(!pages.length && wizardState.pages.length > 0){
+    pages = wizardState.pages;
+  }
+
+  if(!pages.length){
+    alert("Lütfen en az bir sayfaya fotoğraf ekleyin veya yeni bir sayfa açın.");
+    return;
+  }
 
   // Naam + formaat toepassen VOOR de opbouw: applyTemplateToActiveSpread rekent
   // met formats[project.format], dus het formaat moet al vaststaan.
