@@ -1856,8 +1856,12 @@ body.exporting .crop-height-handle-top{
    masaüstü uygulama sayfasına dönüşür: kenardan kenara, siyah boşluksuz.
    ========================================================================== */
 
-/* Force the overlay to remove any padding and alignment limits when wizard is active */
-#introOverlay {
+/* Force the overlay to remove any padding and alignment limits when wizard is active.
+   KRITIEK: alleen wanneer de overlay NIET .hidden is. Een kale #introOverlay-regel
+   (specificity 1,0,0 !important) verslaat namelijk .hidden { display:none !important }
+   (0,1,0), waardoor closeIntroOverlay() de overlay niet kon sluiten. De :not(.hidden)
+   zorgt dat deze regel simpelweg niet matcht zodra .hidden erop staat. */
+#introOverlay:not(.hidden) {
   padding: 0 !important;
   display: block !important;
 }
