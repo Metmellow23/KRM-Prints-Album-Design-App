@@ -63,14 +63,28 @@ const formatLabels = {
 
 const templateCatalog = [
   // =======================================================================
-  //  EIGEN 30×30-SJABLONENCATALOGUS (uitsluitend uit de /Templates map)
-  //  De standaard full-bleed catalogus is bewust verwijderd; alleen de
-  //  handmatig aangeleverde 30×30-sjablonen blijven over. Zelfde conventie:
-  //  genormaliseerde slots (0..1) die het vlak volledig betegelen,
-  //  style:"full-bleed", zodat mmToLayout de coördinaten exact verwerkt.
+  //  EIGEN 30×30-SJABLONENCATALOGUS — UITSLUITEND uit de /Templates map.
+  //  De standaard full-bleed catalogus is verwijderd; hieronder staan ALLE
+  //  handmatig aangeleverde 30×30-layouts (2 t/m 6 foto's), één-op-één
+  //  overgenomen uit de PNG-mockups. Zelfde conventie: genormaliseerde slots
+  //  (0..1) die het vlak volledig betegelen, style:"full-bleed", zodat
+  //  mmToLayout ze exact verwerkt.
   // =======================================================================
 
-  // Template 30x30 - 2 photo - 1 : verticaal 50 / 50 (één foto per pagina)
+  // ----------------------------- 1 FOTO -----------------------------
+  // 1 photo : volledige spread, één full-bleed hero (dekt de enige count die
+  // de folder niet levert, zodat een wizardpagina met 1 foto nooit leeg blijft).
+  {
+    id: "custom-30x30-1-hero",
+    name: "30×30 · 1 Tam Ekran",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 1.00, h: 1.00, style: "full-bleed" }
+    ]
+  },
+
+  // ----------------------------- 2 FOTO'S -----------------------------
+  // 2 photo - 1 : verticaal 50 / 50 (één foto per pagina)
   {
     id: "custom-30x30-2-vsplit",
     name: "30×30 · 2 verticaal 50/50",
@@ -80,7 +94,7 @@ const templateCatalog = [
       { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
     ]
   },
-  // Template 30x30 - 2 photo - 2 : groot links (2/3) + smal rechts (1/3)
+  // 2 photo - 2 : groot links (2/3) + smal rechts (1/3)
   {
     id: "custom-30x30-2-left-large",
     name: "30×30 · groot links + smal rechts",
@@ -90,7 +104,9 @@ const templateCatalog = [
       { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
     ]
   },
-  // Template 30x30 - 3 photo - 1 : drie gelijke kolommen
+
+  // ----------------------------- 3 FOTO'S -----------------------------
+  // 3 photo - 1 : drie gelijke kolommen
   {
     id: "custom-30x30-3-cols",
     name: "30×30 · drie kolommen",
@@ -101,7 +117,7 @@ const templateCatalog = [
       { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
     ]
   },
-  // Template 30x30 - 3 photo - 2 : 2 gestapeld links (50%) + groot rechts (50%)
+  // 3 photo - 2 : 2 gestapeld links (50%) + groot rechts (50%)
   {
     id: "custom-30x30-3-stack-left",
     name: "30×30 · 2 gestapeld links + groot rechts",
@@ -112,7 +128,7 @@ const templateCatalog = [
       { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
     ]
   },
-  // Template 30x30 - 3 photo - 3 : groot links (50%) + 2 smalle kolommen (25%)
+  // 3 photo - 3 : groot links (50%) + 2 smalle kolommen (25%)
   {
     id: "custom-30x30-3-left-hero-cols",
     name: "30×30 · groot links + 2 smal",
@@ -121,6 +137,206 @@ const templateCatalog = [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
       { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
       { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
+    ]
+  },
+
+  // ----------------------------- 4 FOTO'S -----------------------------
+  // 4 photo - 1 : 2 gestapeld links (50%) + 2 kolommen rechts (25%)
+  {
+    id: "custom-30x30-4-stack-left-2cols",
+    name: "30×30 · 2 gestapeld links + 2 kolommen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  // 4 photo - 2 : vier gelijke kolommen
+  {
+    id: "custom-30x30-4-cols",
+    name: "30×30 · vier kolommen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.25, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  // 4 photo - 3 : raster 2 x 2
+  {
+    id: "custom-30x30-4-grid",
+    name: "30×30 · raster 2 x 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  // 4 photo - 4 : hero links (2/3) + 3 rijen rechts (1/3)
+  {
+    id: "custom-30x30-4-hero-left-3rows",
+    name: "30×30 · hero links + 3 rijen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.0000, y: 0.0000, w: 0.6667, h: 1.0000, style: "full-bleed" },
+      { x: 0.6667, y: 0.0000, w: 0.3333, h: 0.3333, style: "full-bleed" },
+      { x: 0.6667, y: 0.3333, w: 0.3333, h: 0.3334, style: "full-bleed" },
+      { x: 0.6667, y: 0.6667, w: 0.3333, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  // 4 photo - 5 : hero links (50%) + groot rechtsboven + 2 klein rechtsonder
+  {
+    id: "custom-30x30-4-hero-left-magazine",
+    name: "30×30 · hero links + magazine rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.65, style: "full-bleed" },
+      { x: 0.50, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" },
+      { x: 0.75, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" }
+    ]
+  },
+  // 4 photo - 6 : hero links (50%) + kolom (25%) + 2 gestapeld rechts (25%)
+  {
+    id: "custom-30x30-4-hero-col-stack",
+    name: "30×30 · hero links + kolom + 2 gestapeld",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+
+  // ----------------------------- 5 FOTO'S -----------------------------
+  // 5 photo - 1 : hero links (50%) + raster 2 x 2 rechts (25%)
+  {
+    id: "custom-30x30-5-hero-left-grid",
+    name: "30×30 · hero links + raster rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  // 5 photo - 2 : 3 kolommen (25%) + 4e kolom in 2 gestapeld (25%)
+  {
+    id: "custom-30x30-5-cols-split",
+    name: "30×30 · 3 kolommen + gesplitste kolom",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.25, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.75, y: 0.00, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  // 5 photo - 3 : 2 kolommen (25%) + groot rechtsboven + 2 klein rechtsonder
+  {
+    id: "custom-30x30-5-cols-magazine",
+    name: "30×30 · 2 kolommen + magazine rechts",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.25, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.65, style: "full-bleed" },
+      { x: 0.50, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" },
+      { x: 0.75, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" }
+    ]
+  },
+  // 5 photo - 4 : 2 groot boven (50%) + 3 onder (50% / 25% / 25%)
+  {
+    id: "custom-30x30-5-2top-3bottom",
+    name: "30×30 · 2 boven + 3 onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+
+  // ----------------------------- 6 FOTO'S -----------------------------
+  // 6 photo - 1 : 3 kolommen (25%) + 4e kolom in 3 rijen (25%)
+  {
+    id: "custom-30x30-6-3cols-3rows",
+    name: "30×30 · 3 kolommen + 3 rijen",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.0000, w: 0.25, h: 1.0000, style: "full-bleed" },
+      { x: 0.25, y: 0.0000, w: 0.25, h: 1.0000, style: "full-bleed" },
+      { x: 0.50, y: 0.0000, w: 0.25, h: 1.0000, style: "full-bleed" },
+      { x: 0.75, y: 0.0000, w: 0.25, h: 0.3333, style: "full-bleed" },
+      { x: 0.75, y: 0.3333, w: 0.25, h: 0.3334, style: "full-bleed" },
+      { x: 0.75, y: 0.6667, w: 0.25, h: 0.3333, style: "full-bleed" }
+    ]
+  },
+  // 6 photo - 2 : 2 groot boven (50%) + 4 kolommen onder (25%)
+  {
+    id: "custom-30x30-6-2top-4bottom",
+    name: "30×30 · 2 boven + 4 onder",
+    category: "full-bleed",
+    slots: [
+      { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
+      { x: 0.00, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.25, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.50, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" },
+      { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  // 6 photo - 3 : raster 3 x 2
+  {
+    id: "custom-30x30-6-grid-3x2",
+    name: "30×30 · raster 3 x 2",
+    category: "full-bleed",
+    slots: [
+      { x: 0.0000, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.3333, y: 0.00, w: 0.3334, h: 0.50, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.0000, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.3333, y: 0.50, w: 0.3334, h: 0.50, style: "full-bleed" },
+      { x: 0.6667, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" }
+    ]
+  },
+  // 6 photo - 4 : hero rechts (1/3) + gemengd raster links
+  {
+    id: "custom-30x30-6-hero-right-mixed",
+    name: "30×30 · hero rechts + gemengd links",
+    category: "full-bleed",
+    slots: [
+      { x: 0.0000, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.3333, y: 0.00, w: 0.3334, h: 0.50, style: "full-bleed" },
+      { x: 0.0000, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" },
+      { x: 0.3333, y: 0.50, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.5000, y: 0.50, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
+    ]
+  },
+  // 6 photo - 5 : brede kolom links + raster 2x2 midden + brede kolom rechts
+  {
+    id: "custom-30x30-6-cols-quad-cols",
+    name: "30×30 · kolom + raster + kolom",
+    category: "full-bleed",
+    slots: [
+      { x: 0.0000, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" },
+      { x: 0.3333, y: 0.00, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.5000, y: 0.00, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.3333, y: 0.50, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.5000, y: 0.50, w: 0.1667, h: 0.50, style: "full-bleed" },
+      { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
     ]
   }
 ];
@@ -2567,15 +2783,16 @@ function buildAlbumFromWizard(pages){
     // applyTemplateToActiveSpread, dat er per slot echte template-frames van maakt).
     spread.frames = photoIds.map(pid => ({ photoId: pid }));
 
-    // Güvenlik Ağı: Sayfada foto varsa şablon bul ve uygula.
+    // Güvenlik Ağı: Sayfada foto varsa katalog şablonunu bul ve uygula. Katalog
+    // artık 2-6 foto için tüm 30×30 layout'larını içerdiğinden bu yol her sayfayı
+    // kapsar (kod-üretimli fallback ızgarasına gerek kalmadı, kaldırıldı).
     if(photoIds.length > 0){
       const template = findWizardTemplate(photoIds.length);
       if(template){
         applyTemplateToActiveSpread(template.id);
       }
     } else {
-      // Sayfa tamamen boşsa şablon motorunu pas geç; findWizardTemplate(0) /
-      // applyTemplateToActiveSpread çağrılmadan temiz, serbest bir spread bırak.
+      // Sayfa tamamen boşsa şablon motorunu pas geç; temiz, serbest bir spread bırak.
       spread.slots = [];
       rerenderSpread(spread);
     }
