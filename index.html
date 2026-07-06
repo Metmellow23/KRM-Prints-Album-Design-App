@@ -163,7 +163,12 @@
       <p class="intro-subtitle">Selecteer rechts een pagina en klik links op foto's om ze in dat pakket te plaatsen.</p>
       <div class="wizard-split">
         <div class="wizard-col wizard-col--library">
-          <div class="wizard-col-head">Fotobibliotheek <span class="wizard-col-count" id="wizardLibCount">0</span></div>
+          <div class="wizard-col-head">Fotobibliotheek <span class="wizard-col-count" id="wizardLibCount">0</span>
+            <div class="wizard-zoom-controls" style="display:inline-flex; align-items:center; gap:6px; margin-left:14px;">
+              <button class="btn" id="wizardZoomOut" type="button" style="min-width:28px; width:28px; height:28px; padding:0; font-size:14px;">−</button>
+              <button class="btn" id="wizardZoomIn" type="button" style="min-width:28px; width:28px; height:28px; padding:0; font-size:14px;">+</button>
+            </div>
+          </div>
           <div class="wizard-library" id="wizardLibrary"></div>
         </div>
         <div class="wizard-col wizard-col--pages">

@@ -2717,6 +2717,8 @@ const wizardFinishBtn = document.getElementById("wizardFinish");
 const wizardAddPageBtn = document.getElementById("wizardAddPage");
 const wizardLibraryEl = document.getElementById("wizardLibrary");
 const wizardLibCount = document.getElementById("wizardLibCount");
+const wizardZoomInBtn = document.getElementById("wizardZoomIn");
+const wizardZoomOutBtn = document.getElementById("wizardZoomOut");
 const wizardPagesEl = document.getElementById("wizardPages");
 const wizardSummary = document.getElementById("wizardSummary");
 const wizardSummaryGrid = document.getElementById("wizardSummaryGrid");
@@ -3006,6 +3008,36 @@ if(wizardNext1) wizardNext1.addEventListener("click", () => goToWizardStep(2));
 if(wizardNext2) wizardNext2.addEventListener("click", () => goToWizardStep(3));
 if(wizardAddPageBtn) wizardAddPageBtn.addEventListener("click", addWizardPage);
 if(wizardFinishBtn) wizardFinishBtn.addEventListener("click", finishWizard);
+
+// --- Galeri yakınlaştırma (Grid Scaler) ---
+// Stap 2'deki sol fotoğraf galerisini kademeli büyütüp küçültür. Yalnızca CSS
+// değişkenlerini (inline) günceller; foto dağıtımı, sayfa paketleri ve
+// senkronizasyon mantığına dokunmaz. Uç seviyeler: en yakın = yan yana 3 foto,
+// en uzak = yan yana 6 foto.
+const WIZARD_ZOOM_LEVELS = [
+  { min: "130px", row: "115px" }, // en uzak — yan yana ~6 foto
+  { min: "150px", row: "130px" },
+  { min: "170px", row: "150px" }, // varsayılan — yan yana ~4-5 foto
+  { min: "210px", row: "185px" },
+  { min: "260px", row: "220px" }, // en yakın — yan yana ~3 foto
+];
+let wizardZoomLevel = 2; // varsayılan başlangıç seviyesi
+
+function applyWizardZoom(){
+  if(!wizardLibraryEl) return;
+  const level = WIZARD_ZOOM_LEVELS[wizardZoomLevel];
+  wizardLibraryEl.style.setProperty("--wizard-thumb-min", level.min);
+  wizardLibraryEl.style.setProperty("--wizard-row-height", level.row);
+}
+
+if(wizardZoomInBtn) wizardZoomInBtn.addEventListener("click", () => {
+  wizardZoomLevel = Math.min(WIZARD_ZOOM_LEVELS.length - 1, wizardZoomLevel + 1);
+  applyWizardZoom();
+});
+if(wizardZoomOutBtn) wizardZoomOutBtn.addEventListener("click", () => {
+  wizardZoomLevel = Math.max(0, wizardZoomLevel - 1);
+  applyWizardZoom();
+});
 
 // Terug-knoppen binnen de wizard.
 document.querySelectorAll(".wizard-back").forEach(btn => {

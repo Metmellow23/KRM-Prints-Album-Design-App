@@ -1483,10 +1483,12 @@ body.exporting .crop-height-handle-top{
 
 /* Bredere kaart wanneer de wizard actief is (stap 2 heeft twee kolommen). */
 .intro-card.wizard-mode{
-  width:min(1340px, calc(100vw - 32px));
-  /* Tam ekran kontrolü: kart hiçbir zaman viewport'u aşmaz; iç panel kendi
-     içinde kayar, sayfada çift scroll oluşmaz. */
-  max-height:calc(100vh - 32px);
+  /* Tam ekran galeri deneyimi: kart modal boyutundan kurtulup gerçek bir
+     masaüstü uygulaması gibi viewport'u doldurur. İç panel kendi içinde
+     kayar, sayfada çift scroll oluşmaz. */
+  width:min(1440px, 96vw);
+  height:88vh;
+  max-height:88vh;
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -1495,10 +1497,13 @@ body.exporting .crop-height-handle-top{
 .intro-card.wizard-mode .wizard-panel.active{
   display:flex;
   flex-direction:column;
+  height:100%;
   min-height:0;
   flex:1 1 auto;
 }
-/* Titel + subtitel + acties blijven vast; alleen de kolommen scrollen. */
+/* Titel + subtitel + stap-indicator + acties blijven vast; alleen de
+   kolommen scrollen. */
+.intro-card.wizard-mode .wizard-steps,
 .intro-card.wizard-mode .wizard-panel .intro-title,
 .intro-card.wizard-mode .wizard-panel .intro-subtitle,
 .intro-card.wizard-mode .wizard-panel .intro-actions{
@@ -1587,22 +1592,23 @@ body.exporting .crop-height-handle-top{
 
 /* Stap 2: twee kolommen — links de galerie (flex:3), rechts de pakketten (flex:1) */
 .wizard-split{
-  display:flex;
-  gap:18px;
-  margin-bottom:16px;
   flex:1 1 auto;
+  display:flex;
+  gap:20px;
   min-height:0;
+  overflow:hidden;
+  margin-bottom:12px;
 }
 .wizard-col{
   display:flex;
   flex-direction:column;
   min-height:0;
 }
-.wizard-col--library{ flex:3 1 0; }
+.wizard-col--library{ flex:2.2 1 0; }
 .wizard-col--pages{ flex:1 1 0; }
 /* Terugvalselector als de modifier-klassen (nog) niet in de HTML staan:
    eerste kolom = galerie, tweede kolom = pakketten. */
-.wizard-split > .wizard-col:first-child{ flex:3 1 0; }
+.wizard-split > .wizard-col:first-child{ flex:2.2 1 0; }
 .wizard-split > .wizard-col:last-child{ flex:1 1 0; }
 .wizard-col-head{
   font-size:12px;
@@ -1628,18 +1634,24 @@ body.exporting .crop-height-handle-top{
    auto-rows + align-content:start houdt de rijen strak; geen cel schuift over
    een andere. object-fit:contain = geen bijsnijden en geen vervorming. */
 .wizard-library{
+  /* Dinamik ızgara (Grid Scaler): kolon genişliği ve satır yüksekliği CSS
+     değişkenlerine bağlı. Zoom butonları bu değişkenleri inline günceller;
+     varsayılan olarak yan yana ~4-5 foto sığar. */
+  --wizard-thumb-min:170px;
+  --wizard-row-height:150px;
+
   flex:1 1 auto;
   min-height:0;
   overflow-y:auto;
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
-  grid-auto-rows:150px;
+  grid-template-columns:repeat(auto-fill, minmax(var(--wizard-thumb-min), 1fr));
+  grid-auto-rows:var(--wizard-row-height);
   align-content:start;
   gap:14px;
-  padding:14px;
+  padding:16px;
   background:var(--panel-2);
   border:1px solid var(--border-2);
-  border-radius:14px;
+  border-radius:12px;
 }
 .wizard-thumb{
   position:relative;
@@ -1656,6 +1668,7 @@ body.exporting .crop-height-handle-top{
   width:100%;
   height:100%;
   object-fit:contain;
+  background:var(--panel-3);
   display:block;
 }
 .wizard-thumb:hover{
@@ -1698,11 +1711,11 @@ body.exporting .crop-height-handle-top{
 /* Pagina-pakketten rechts */
 .wizard-pages{
   flex:1 1 auto;
-  min-height:0;
+  overflow-y:auto;
   display:flex;
   flex-direction:column;
   gap:10px;
-  overflow-y:auto;
+  min-height:0;
   padding-right:4px;
 }
 .wizard-page{
@@ -1780,7 +1793,7 @@ body.exporting .crop-height-handle-top{
 }
 /* Kibar, kompakt "Sayfa Ekle"-knop: geen grote gevulde balk meer. */
 .wizard-add-page{
-  margin-top:12px;
+  margin-top:8px;
   flex:0 0 auto;
   align-self:flex-start;
   min-width:0;
@@ -1826,4 +1839,73 @@ body.exporting .crop-height-handle-top{
   .wizard-split > .wizard-col:first-child,
   .wizard-split > .wizard-col:last-child{ flex:1 1 auto; }
   .wizard-library{ grid-auto-rows:120px; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); }
+}
+
+/* ==========================================================================
+   TAM EKRAN UYGULAMA GÖRÜNÜMÜ — wizard modal-hissini tamamen kaldırır.
+   introMode === "wizard" iken kart pop-up olmaktan çıkıp gerçek bir
+   masaüstü uygulama sayfasına dönüşür: kenardan kenara, siyah boşluksuz.
+   ========================================================================== */
+
+/* Force the overlay to remove any padding and alignment limits when wizard is active */
+#introOverlay {
+  padding: 0 !important;
+  display: block !important;
+}
+
+/* Overhaul the card to occupy 100% of the screen seamlessly */
+.intro-card.wizard-mode {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 30px 40px !important; /* Ferah bir galeri için iç boşluk */
+  box-shadow: none !important;
+  background: var(--bg) !important; /* Pop-up kart rengi yerine direkt uygulamanın kendi arka planı */
+}
+
+/* Make the inner columns expand perfectly into the newly unlocked vertical space */
+.intro-card.wizard-mode .wizard-split {
+  height: calc(100vh - 180px) !important;
+  max-height: calc(100vh - 180px) !important;
+}
+
+.intro-card.wizard-mode .wizard-library,
+.intro-card.wizard-mode .wizard-pages {
+  max-height: 100% !important;
+  height: 100% !important;
+}
+
+/* ==========================================================================
+   KOMPAKT ÜST BAŞLIK — başlık/alt-başlık/adım göstergesi daha az dikey yer
+   kaplasın, galeri ve sayfa listesi maksimum nefes alanı kazansın.
+   ========================================================================== */
+
+/* Tighten the wizard title size and margins */
+.intro-card.wizard-mode .wizard-panel .intro-title {
+  font-size: 20px !important;
+  margin: 0 0 4px 0 !important;
+  font-weight: 600 !important;
+}
+
+/* Make the subtitle smaller and closer to the content */
+.intro-card.wizard-mode .wizard-panel .intro-subtitle {
+  font-size: 12px !important;
+  margin: 0 0 16px 0 !important;
+  color: var(--muted-2) !important;
+  line-height: 1.4 !important;
+}
+
+/* Slightly decrease the step indicator margin */
+.intro-card.wizard-mode .wizard-steps {
+  margin-bottom: 14px !important;
+}
+
+/* Recalculate the split height to claim the reclaimed vertical space */
+.intro-card.wizard-mode .wizard-split {
+  height: calc(100vh - 135px) !important;
+  max-height: calc(100vh - 135px) !important;
 }
