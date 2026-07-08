@@ -778,6 +778,27 @@ function applyTemplateToActiveSpread(templateId){
   existingPhotoIds.forEach((photoId, index) => {
     const frame = activeSpread.frames[index];
     if(frame && photoId){
+      // SYNCHRONE cover-berekening uit de al verzegelde natuurlijke maten
+      // (importPhotoFiles sealt naturalWidth/Height). Zo klopt de EERSTE render
+      // meteen; geen async 'squeeze'-frame meer terwijl fillFrameWithPhoto's
+      // Image().onload nog moet vuren. Zelfde wiskunde als relayoutSpreadWithGap.
+      const photo = getPhotoById(photoId);
+      if(photo && photo.naturalWidth && photo.naturalHeight){
+        const ratio = photo.naturalWidth / photo.naturalHeight;
+        if((frame.width / frame.height) > ratio){
+          frame.imageWidth = frame.width;
+          frame.imageHeight = frame.width / ratio;
+        } else {
+          frame.imageHeight = frame.height;
+          frame.imageWidth = frame.height * ratio;
+        }
+        frame.imageLeft = (frame.width - frame.imageWidth) / 2;
+        frame.imageTop = (frame.height - frame.imageHeight) / 2;
+        ensureImageCoversFrame(frame);
+      }
+      // Nog steeds aanroepen: sealt natuurlijke maten voor foto's die er (nog)
+      // geen hebben en houdt bibliotheek/preview in sync. Voor reeds verzegelde
+      // foto's herberekent onload exact dezelfde waarden — dus onzichtbaar.
       fillFrameWithPhoto(frame, photoId);
     }
   });
@@ -2692,16 +2713,64 @@ function renderWizardStep2(){
       count.textContent = `${page.photoIds.length} foto${page.photoIds.length === 1 ? "" : "'s"}`;
       head.appendChild(count);
 
+      // Modern Action Controls Container
+      const controlsGroup = document.createElement("div");
+      controlsGroup.className = "wizard-page-controls";
+      controlsGroup.style.cssText = "display: flex; align-items: center; gap: 6px; margin-left: auto;";
+
+      // Move Up Button (Sleek Circle)
+      const moveUpBtn = document.createElement("button");
+      moveUpBtn.type = "button";
+      moveUpBtn.className = "btn-wizard-action move-up";
+      moveUpBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>`;
+      moveUpBtn.title = "Yukarı Taşı";
+      moveUpBtn.disabled = index === 0;
+      if(!moveUpBtn.disabled) {
+        moveUpBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const temp = wizardState.pages[index];
+          wizardState.pages[index] = wizardState.pages[index - 1];
+          wizardState.pages[index - 1] = temp;
+          if(wizardState.activePage === index) wizardState.activePage = index - 1;
+          else if(wizardState.activePage === index - 1) wizardState.activePage = index;
+          renderWizardStep2();
+        });
+      }
+      controlsGroup.appendChild(moveUpBtn);
+
+      // Move Down Button (Sleek Circle)
+      const moveDownBtn = document.createElement("button");
+      moveDownBtn.type = "button";
+      moveDownBtn.className = "btn-wizard-action move-down";
+      moveDownBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
+      moveDownBtn.title = "Aşağı Taşı";
+      moveDownBtn.disabled = index === wizardState.pages.length - 1;
+      if(!moveDownBtn.disabled) {
+        moveDownBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const temp = wizardState.pages[index];
+          wizardState.pages[index] = wizardState.pages[index + 1];
+          wizardState.pages[index + 1] = temp;
+          if(wizardState.activePage === index) wizardState.activePage = index + 1;
+          else if(wizardState.activePage === index + 1) wizardState.activePage = index;
+          renderWizardStep2();
+        });
+      }
+      controlsGroup.appendChild(moveDownBtn);
+
+      // Modernized Delete Button (Sleek Circle)
       const del = document.createElement("button");
       del.type = "button";
-      del.className = "wizard-page-del";
-      del.textContent = "✕";
+      del.className = "btn-wizard-action delete";
+      del.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
       del.title = "Pagina verwijderen";
       del.addEventListener("click", (e) => {
         e.stopPropagation();
         removeWizardPage(index);
       });
-      head.appendChild(del);
+      controlsGroup.appendChild(del);
+
+      head.appendChild(controlsGroup);
       card.appendChild(head);
 
       const strip = document.createElement("div");

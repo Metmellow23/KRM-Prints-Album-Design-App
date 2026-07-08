@@ -1773,17 +1773,6 @@ body.exporting .crop-height-handle-top{
 }
 .wizard-page-title{ font-size:13px; font-weight:700; color:var(--text); }
 .wizard-page-count{ font-size:11px; color:var(--muted-2); margin-left:auto; }
-.wizard-page-del{
-  border:none;
-  background:none;
-  color:var(--muted-2);
-  cursor:pointer;
-  font-size:12px;
-  line-height:1;
-  padding:2px 4px;
-  border-radius:6px;
-}
-.wizard-page-del:hover{ color:#fff; background:#dc2626; }
 .wizard-page-strip{
   display:flex;
   flex-wrap:wrap;
@@ -1946,4 +1935,35 @@ body.exporting .crop-height-handle-top{
 .intro-card.wizard-mode .wizard-split {
   height: calc(100vh - 135px) !important;
   max-height: calc(100vh - 135px) !important;
+}
+
+.btn-wizard-action {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  background: var(--panel-3);
+  color: var(--muted-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+.btn-wizard-action:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--border-2);
+  border-color: var(--border);
+  transform: translateY(-1px);
+}
+.btn-wizard-action.delete:hover:not(:disabled) {
+  color: #ffffff !important;
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+.btn-wizard-action:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: none !important;
 }
