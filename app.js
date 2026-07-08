@@ -2522,7 +2522,26 @@ async function exportAllSpreadsPDF(){
         pdf.addPage([spreadWidthMm, spreadHeightMm], orientation);
       }
 
-      pdf.setFillColor(255, 255, 255);
+      // Dinamik Arka Plan Rengi Çözüm Katmanı
+      // Öncelik spread'in kendi renginde, yoksa projenin genel arka planında, o da yoksa beyaz (#ffffff)
+      const hexColor = spread.background || project.spreadBackground || '#ffffff';
+
+      // HEX kodunu RGB formatına temiz bir şekilde parçala
+      let r = 255, g = 255, b = 255;
+      if (hexColor.startsWith('#')) {
+        const cleanedHex = hexColor.replace('#', '');
+        if (cleanedHex.length === 6) {
+          r = parseInt(cleanedHex.substring(0, 2), 16);
+          g = parseInt(cleanedHex.substring(2, 4), 16);
+          b = parseInt(cleanedHex.substring(4, 6), 16);
+        } else if (cleanedHex.length === 3) {
+          r = parseInt(cleanedHex.charAt(0) + cleanedHex.charAt(0), 16);
+          g = parseInt(cleanedHex.charAt(1) + cleanedHex.charAt(1), 16);
+          b = parseInt(cleanedHex.charAt(2) + cleanedHex.charAt(2), 16);
+        }
+      }
+
+      pdf.setFillColor(r, g, b);
       pdf.rect(0, 0, spreadWidthMm, spreadHeightMm, 'F');
 
       for(const frame of spread.frames){
