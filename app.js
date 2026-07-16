@@ -63,41 +63,41 @@ const formatLabels = {
 
 const templateCatalog = [
   // =======================================================================
-  //  EIGEN 30×30-SJABLONENCATALOGUS — UITSLUITEND uit de /Templates map.
-  //  De standaard full-bleed catalogus is verwijderd; hieronder staan ALLE
-  //  handmatig aangeleverde 30×30-layouts (2 t/m 6 foto's), één-op-één
-  //  overgenomen uit de PNG-mockups. Zelfde conventie: genormaliseerde slots
-  //  (0..1) die het vlak volledig betegelen, style:"full-bleed", zodat
-  //  mmToLayout ze exact verwerkt.
+  //  CUSTOM 30×30 TEMPLATE CATALOG — sourced EXCLUSIVELY from the /Templates
+  //  folder. The default full-bleed catalog has been removed; below are ALL
+  //  hand-supplied 30×30 layouts (2 through 6 photos), transcribed one-to-one
+  //  from the PNG mockups. Same convention: normalized slots (0..1) that tile
+  //  the surface completely, style:"full-bleed", so mmToLayout renders them
+  //  exactly.
   // =======================================================================
 
-  // ----------------------------- 1 FOTO -----------------------------
-  // 1 photo : volledige spread, één full-bleed hero (dekt de enige count die
-  // de folder niet levert, zodat een wizardpagina met 1 foto nooit leeg blijft).
+  // ----------------------------- 1 PHOTO -----------------------------
+  // 1 photo : full spread, a single full-bleed hero (covers the one count the
+  // folder does not supply, so a wizard page with 1 photo is never left empty).
   {
     id: "custom-30x30-1-hero",
-    name: "30×30 · 1 Tam Ekran",
+    name: "30×30 · 1 Full Screen",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 1.00, h: 1.00, style: "full-bleed" }
     ]
   },
 
-  // ----------------------------- 2 FOTO'S -----------------------------
-  // 2 photo - 1 : verticaal 50 / 50 (één foto per pagina)
+  // ----------------------------- 2 PHOTOS -----------------------------
+  // 2 photo - 1 : vertical 50 / 50 (one photo per page)
   {
     id: "custom-30x30-2-vsplit",
-    name: "30×30 · 2 verticaal 50/50",
+    name: "30×30 · 2 vertical 50/50",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
       { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 2 photo - 2 : groot links (2/3) + smal rechts (1/3)
+  // 2 photo - 2 : large left (2/3) + narrow right (1/3)
   {
     id: "custom-30x30-2-left-large",
-    name: "30×30 · groot links + smal rechts",
+    name: "30×30 · large left + narrow right",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.00, w: 0.6667, h: 1.00, style: "full-bleed" },
@@ -105,11 +105,11 @@ const templateCatalog = [
     ]
   },
 
-  // ----------------------------- 3 FOTO'S -----------------------------
-  // 3 photo - 1 : drie gelijke kolommen
+  // ----------------------------- 3 PHOTOS -----------------------------
+  // 3 photo - 1 : three equal columns
   {
     id: "custom-30x30-3-cols",
-    name: "30×30 · drie kolommen",
+    name: "30×30 · three columns",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" },
@@ -117,10 +117,10 @@ const templateCatalog = [
       { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 3 photo - 2 : 2 gestapeld links (50%) + groot rechts (50%)
+  // 3 photo - 2 : 2 stacked left (50%) + large right (50%)
   {
     id: "custom-30x30-3-stack-left",
-    name: "30×30 · 2 gestapeld links + groot rechts",
+    name: "30×30 · 2 stacked left + large right",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -128,10 +128,10 @@ const templateCatalog = [
       { x: 0.50, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 3 photo - 3 : groot links (50%) + 2 smalle kolommen (25%)
+  // 3 photo - 3 : large left (50%) + 2 narrow columns (25%)
   {
     id: "custom-30x30-3-left-hero-cols",
-    name: "30×30 · groot links + 2 smal",
+    name: "30×30 · large left + 2 narrow",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
@@ -140,11 +140,11 @@ const templateCatalog = [
     ]
   },
 
-  // ----------------------------- 4 FOTO'S -----------------------------
-  // 4 photo - 1 : 2 gestapeld links (50%) + 2 kolommen rechts (25%)
+  // ----------------------------- 4 PHOTOS -----------------------------
+  // 4 photo - 1 : 2 stacked left (50%) + 2 columns right (25%)
   {
     id: "custom-30x30-4-stack-left-2cols",
-    name: "30×30 · 2 gestapeld links + 2 kolommen",
+    name: "30×30 · 2 stacked left + 2 columns",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -153,10 +153,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 4 photo - 2 : vier gelijke kolommen
+  // 4 photo - 2 : four equal columns
   {
     id: "custom-30x30-4-cols",
-    name: "30×30 · vier kolommen",
+    name: "30×30 · four columns",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
@@ -165,10 +165,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 4 photo - 3 : raster 2 x 2
+  // 4 photo - 3 : grid 2 x 2
   {
     id: "custom-30x30-4-grid",
-    name: "30×30 · raster 2 x 2",
+    name: "30×30 · grid 2 x 2",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -177,10 +177,10 @@ const templateCatalog = [
       { x: 0.50, y: 0.50, w: 0.50, h: 0.50, style: "full-bleed" }
     ]
   },
-  // 4 photo - 4 : hero links (2/3) + 3 rijen rechts (1/3)
+  // 4 photo - 4 : hero left (2/3) + 3 rows right (1/3)
   {
     id: "custom-30x30-4-hero-left-3rows",
-    name: "30×30 · hero links + 3 rijen",
+    name: "30×30 · hero left + 3 rows",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.0000, w: 0.6667, h: 1.0000, style: "full-bleed" },
@@ -189,10 +189,10 @@ const templateCatalog = [
       { x: 0.6667, y: 0.6667, w: 0.3333, h: 0.3333, style: "full-bleed" }
     ]
   },
-  // 4 photo - 5 : hero links (50%) + groot rechtsboven + 2 klein rechtsonder
+  // 4 photo - 5 : hero left (50%) + large top-right + 2 small bottom-right
   {
     id: "custom-30x30-4-hero-left-magazine",
-    name: "30×30 · hero links + magazine rechts",
+    name: "30×30 · hero left + magazine right",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
@@ -201,10 +201,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" }
     ]
   },
-  // 4 photo - 6 : hero links (50%) + kolom (25%) + 2 gestapeld rechts (25%)
+  // 4 photo - 6 : hero left (50%) + column (25%) + 2 stacked right (25%)
   {
     id: "custom-30x30-4-hero-col-stack",
-    name: "30×30 · hero links + kolom + 2 gestapeld",
+    name: "30×30 · hero left + column + 2 stacked",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
@@ -214,11 +214,11 @@ const templateCatalog = [
     ]
   },
 
-  // ----------------------------- 5 FOTO'S -----------------------------
-  // 5 photo - 1 : hero links (50%) + raster 2 x 2 rechts (25%)
+  // ----------------------------- 5 PHOTOS -----------------------------
+  // 5 photo - 1 : hero left (50%) + grid 2 x 2 right (25%)
   {
     id: "custom-30x30-5-hero-left-grid",
-    name: "30×30 · hero links + raster rechts",
+    name: "30×30 · hero left + grid right",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 1.00, style: "full-bleed" },
@@ -228,10 +228,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
     ]
   },
-  // 5 photo - 2 : 3 kolommen (25%) + 4e kolom in 2 gestapeld (25%)
+  // 5 photo - 2 : 3 columns (25%) + 4th column split into 2 stacked (25%)
   {
     id: "custom-30x30-5-cols-split",
-    name: "30×30 · 3 kolommen + gesplitste kolom",
+    name: "30×30 · 3 columns + split column",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
@@ -241,10 +241,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
     ]
   },
-  // 5 photo - 3 : 2 kolommen (25%) + groot rechtsboven + 2 klein rechtsonder
+  // 5 photo - 3 : 2 columns (25%) + large top-right + 2 small bottom-right
   {
     id: "custom-30x30-5-cols-magazine",
-    name: "30×30 · 2 kolommen + magazine rechts",
+    name: "30×30 · 2 columns + magazine right",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.25, h: 1.00, style: "full-bleed" },
@@ -254,10 +254,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.65, w: 0.25, h: 0.35, style: "full-bleed" }
     ]
   },
-  // 5 photo - 4 : 2 groot boven (50%) + 3 onder (50% / 25% / 25%)
+  // 5 photo - 4 : 2 large top (50%) + 3 bottom (50% / 25% / 25%)
   {
     id: "custom-30x30-5-2top-3bottom",
-    name: "30×30 · 2 boven + 3 onder",
+    name: "30×30 · 2 top + 3 bottom",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -268,11 +268,11 @@ const templateCatalog = [
     ]
   },
 
-  // ----------------------------- 6 FOTO'S -----------------------------
-  // 6 photo - 1 : 3 kolommen (25%) + 4e kolom in 3 rijen (25%)
+  // ----------------------------- 6 PHOTOS -----------------------------
+  // 6 photo - 1 : 3 columns (25%) + 4th column split into 3 rows (25%)
   {
     id: "custom-30x30-6-3cols-3rows",
-    name: "30×30 · 3 kolommen + 3 rijen",
+    name: "30×30 · 3 columns + 3 rows",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.0000, w: 0.25, h: 1.0000, style: "full-bleed" },
@@ -283,10 +283,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.6667, w: 0.25, h: 0.3333, style: "full-bleed" }
     ]
   },
-  // 6 photo - 2 : 2 groot boven (50%) + 4 kolommen onder (25%)
+  // 6 photo - 2 : 2 large top (50%) + 4 columns bottom (25%)
   {
     id: "custom-30x30-6-2top-4bottom",
-    name: "30×30 · 2 boven + 4 onder",
+    name: "30×30 · 2 top + 4 bottom",
     category: "full-bleed",
     slots: [
       { x: 0.00, y: 0.00, w: 0.50, h: 0.50, style: "full-bleed" },
@@ -297,10 +297,10 @@ const templateCatalog = [
       { x: 0.75, y: 0.50, w: 0.25, h: 0.50, style: "full-bleed" }
     ]
   },
-  // 6 photo - 3 : raster 3 x 2
+  // 6 photo - 3 : grid 3 x 2
   {
     id: "custom-30x30-6-grid-3x2",
-    name: "30×30 · raster 3 x 2",
+    name: "30×30 · grid 3 x 2",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
@@ -311,10 +311,10 @@ const templateCatalog = [
       { x: 0.6667, y: 0.50, w: 0.3333, h: 0.50, style: "full-bleed" }
     ]
   },
-  // 6 photo - 4 : hero rechts (1/3) + gemengd raster links
+  // 6 photo - 4 : hero right (1/3) + mixed grid left
   {
     id: "custom-30x30-6-hero-right-mixed",
-    name: "30×30 · hero rechts + gemengd links",
+    name: "30×30 · hero right + mixed left",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.00, w: 0.3333, h: 0.50, style: "full-bleed" },
@@ -325,10 +325,10 @@ const templateCatalog = [
       { x: 0.6667, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" }
     ]
   },
-  // 6 photo - 5 : brede kolom links + raster 2x2 midden + brede kolom rechts
+  // 6 photo - 5 : wide column left + grid 2x2 center + wide column right
   {
     id: "custom-30x30-6-cols-quad-cols",
-    name: "30×30 · kolom + raster + kolom",
+    name: "30×30 · column + grid + column",
     category: "full-bleed",
     slots: [
       { x: 0.0000, y: 0.00, w: 0.3333, h: 1.00, style: "full-bleed" },
@@ -344,8 +344,8 @@ const templateCatalog = [
 
 let currentZoom = 100;
 let activeSpread = null;
-// Onthoudt welke template-slot (frame) de gebruiker heeft aangeklikt, zodat de
-// volgende klik in de fotobibliotheek die foto direct in dat vak plaatst.
+// Remembers which template slot (frame) the user clicked, so the next click in
+// the photo library places that photo straight into that slot.
 let selectedFrameId = null;
 let project = createEmptyProject(formatSelect.value);
 let librarySortMode = "name-asc";
@@ -360,7 +360,7 @@ let spreadViews = [];
 function createEmptyProject(formatValue){
   return {
     version: 4,
-    name: 'Nieuw album',
+    name: 'New album',
     format: formatValue,
     spreadBackground: '#ffffff',
     library: [],
@@ -380,7 +380,7 @@ function formatCaptureDate(ts){
   if(!ts) return '';
   const date = new Date(ts);
   if(Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('nl-NL', {
+  return new Intl.DateTimeFormat('en-GB', {
     year:'numeric',
     month:'2-digit',
     day:'2-digit'
@@ -389,22 +389,22 @@ function formatCaptureDate(ts){
 
 function sortLibraryItems(items){
   const sorted = [...items];
-  const getName = item => (item.name || '').toLocaleLowerCase('nl-NL');
+  const getName = item => (item.name || '').toLocaleLowerCase('en');
   const getCapture = item => Number(item.captureDate || 0);
 
   sorted.sort((a, b) => {
-    if(librarySortMode === 'name-desc') return getName(b).localeCompare(getName(a), 'nl-NL');
+    if(librarySortMode === 'name-desc') return getName(b).localeCompare(getName(a), 'en');
     if(librarySortMode === 'capture-asc'){
       const diff = getCapture(a) - getCapture(b);
       if(diff !== 0) return diff;
-      return getName(a).localeCompare(getName(b), 'nl-NL');
+      return getName(a).localeCompare(getName(b), 'en');
     }
     if(librarySortMode === 'capture-desc'){
       const diff = getCapture(b) - getCapture(a);
       if(diff !== 0) return diff;
-      return getName(a).localeCompare(getName(b), 'nl-NL');
+      return getName(a).localeCompare(getName(b), 'en');
     }
-    return getName(a).localeCompare(getName(b), 'nl-NL');
+    return getName(a).localeCompare(getName(b), 'en');
   });
 
   return sorted;
@@ -439,7 +439,7 @@ function setAssetMode(mode){
   libraryTabs.forEach(btn => btn.classList.toggle("active", btn.dataset.mode === mode));
   libraryView.classList.toggle("active", !showTemplates);
   templateView.classList.toggle("active", showTemplates);
-  libraryTitle.textContent = showTemplates ? "Templates" : "Fotobibliotheek";
+  libraryTitle.textContent = showTemplates ? "Templates" : "Photo library";
   librarySortWrap.classList.toggle("hidden", showTemplates);
   templateFilterWrap.classList.toggle("hidden", !showTemplates);
   templateCountWrap.classList.toggle("hidden", !showTemplates);
@@ -460,7 +460,7 @@ function renderTemplates(){
   const templates = getFilteredTemplates();
   templateLibrary.innerHTML = "";
   if(!templates.length){
-    templateLibrary.innerHTML = '<div id="templateEmpty">Geen templates gevonden voor ' + templatePhotoCount + ' foto\'s binnen dit filter.</div>';
+    templateLibrary.innerHTML = '<div id="templateEmpty">No templates found for ' + templatePhotoCount + ' photo(s) within this filter.</div>';
     return;
   }
 
@@ -497,9 +497,9 @@ function mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx = 0){
   if(isFullBleed && typeof slot.x === "number"){
     const gapX = gap / Math.max(1, spreadWidth);
     const gapY = gap / Math.max(1, spreadHeight);
-    // Kenar Boşluğu: buiteninset (0..1) waarmee slots die de albumrand raken
-    // vanaf díe rand naar binnen krimpen. Binnenranden (naden) blijven de gap
-    // volgen; alleen de buitenrand wordt door padding beïnvloed.
+    // Margin: outer inset (0..1) that shrinks slots touching the album edge
+    // inward from that edge. Inner edges (seams) keep following the gap; only
+    // the outer edge is affected by padding.
     const padX = paddingPx / Math.max(1, spreadWidth);
     const padY = paddingPx / Math.max(1, spreadHeight);
 
@@ -574,21 +574,21 @@ function rerenderSpread(spreadModel){
   spreadModel.frames.forEach(frame => renderFrame(spreadModel, frame));
 }
 
-// Herberekent ALLEEN de sjabloon-slotposities van DEZE spread met zijn eigen
-// gap (spreadModel.gap). Gebruikt exact hetzelfde pad als het toepassen van een
-// sjabloon (createTemplateFrame + fillFrameWithPhoto), zodat de cover-, schaal-
-// en centreer-wiskunde van de foto's volledig ongewijzigd blijft. Andere spreads
-// worden niet aangeraakt. Vereist dat de spread een sjabloon heeft (spreadModel.slots).
+// Recalculates ONLY the template slot positions of THIS spread using its own
+// gap (spreadModel.gap). Uses exactly the same path as applying a template
+// (createTemplateFrame + fillFrameWithPhoto), so the cover, scale and centering
+// math of the photos stays completely unchanged. Other spreads are untouched.
+// Requires the spread to have a template (spreadModel.slots).
 function relayoutSpreadWithGap(spreadModel){
   if(!spreadModel) return;
 
-  // Een uit JSON geladen project vult wel spreadModel.frames, maar laat
-  // spreadModel.slots (de sjabloon-coordinaten) aanvankelijk leeg. Zonder slots
-  // "bevriezen" de foto's bij de eerste slider-beweging omdat alleen aangeklikte
-  // frames via writeBackResizedSlot hun slot vulden. Ontbreekt de slots-array,
-  // is die leeg, of loopt hij niet meer synchroon met het aantal frames? Bouw hem
-  // dan hier direct en SYNCHROON opnieuw op uit de bestaande frame-geometrie,
-  // zodat de gebruiker niet eerst elke foto handmatig hoeft aan te klikken.
+  // A project loaded from JSON does populate spreadModel.frames, but initially
+  // leaves spreadModel.slots (the template coordinates) empty. Without slots the
+  // photos "freeze" on the first slider move because only clicked frames filled
+  // their slot via writeBackResizedSlot. If the slots array is missing, empty, or
+  // no longer in sync with the frame count, rebuild it here directly and
+  // SYNCHRONOUSLY from the existing frame geometry, so the user does not have to
+  // click every photo by hand first.
   if(!Array.isArray(spreadModel.slots) || spreadModel.slots.length !== spreadModel.frames.length){
     spreadModel.slots = [];
     spreadModel.frames.forEach(frame => {
@@ -596,40 +596,40 @@ function relayoutSpreadWithGap(spreadModel){
     });
   }
 
-  // Nog steeds geen slots (bijv. een lege spread zonder frames)? Dan vroegtijdig stoppen.
+  // Still no slots (e.g. an empty spread without frames)? Then bail out early.
   if(!spreadModel.slots || !spreadModel.slots.length) return;
 
   const [spreadWidth, spreadHeight] = formats[project.format];
-  // Gebruik UITSLUITEND de eigen gap van deze spread. Ontbreekt die, val dan
-  // terug op een vaste constante (5) i.p.v. de globale templateGapPx, zodat de
-  // onderbalk deze re-render nooit stiekem live kan beïnvloeden.
+  // Use EXCLUSIVELY this spread's own gap. If it is missing, fall back to a fixed
+  // constant (5) instead of the global templateGapPx, so the bottom bar can never
+  // secretly influence this re-render live.
   const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
-  // Kenar Boşluğu van DEZE spread: 0 = ongewijzigd gedrag (full-bleed tot rand).
+  // Margin of THIS spread: 0 = unchanged behavior (full-bleed to the edge).
   const padding = typeof spreadModel.padding === "number" ? spreadModel.padding : 0;
   const view = getSpreadView(spreadModel);
   if(!view) return;
 
-  // LICHTGEWICHT re-layout: verwijder NOOIT DOM-elementen (dat gaf frames nieuwe
-  // uid's en dwong de browser tot een <img>-herbouw die de slider niet bijhield,
-  // waardoor foto's -vooral de rechter- konden "verdwijnen"). We muteren hier de
-  // BESTAANDE frames + hun DOM-nodes in-place; id's blijven ongewijzigd.
+  // LIGHTWEIGHT re-layout: NEVER remove DOM elements (that gave frames new uids
+  // and forced the browser into an <img> rebuild the slider could not keep up
+  // with, which made photos — especially the right-hand one — "disappear"). Here
+  // we mutate the EXISTING frames + their DOM nodes in place; ids stay unchanged.
   spreadModel.slots.forEach((slot, index) => {
     let frame = spreadModel.frames[index];
     const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, padding);
 
-    // Ontbreekt er (nog) een frame op deze index, maak er dan één (veiligheidsnet).
+    // If a frame is (still) missing at this index, create one (safety net).
     if(!frame){
       frame = createTemplateFrame(slot, spreadWidth, spreadHeight, null, gap, padding);
       spreadModel.frames[index] = frame;
     } else {
-      // Werk de maten van het BESTAANDE frame bij; raak de id NIET aan.
+      // Update the dimensions of the EXISTING frame; do NOT touch the id.
       frame.x = Math.round(layout.x * spreadWidth);
       frame.y = Math.round(layout.y * spreadHeight);
       frame.width = Math.max(60, Math.round(layout.w * spreadWidth));
       frame.height = Math.max(60, Math.round(layout.h * spreadHeight));
     }
 
-    // Herbereken de cover/-focus VOLLEDIG SYNCHROON uit de gecachte natuurlijke maten.
+    // Recalculate the cover/focus FULLY SYNCHRONOUSLY from the cached natural sizes.
     if(frame.photoId){
       const photo = getPhotoById(frame.photoId);
       if(photo && photo.naturalWidth && photo.naturalHeight){
@@ -646,8 +646,8 @@ function relayoutSpreadWithGap(spreadModel){
       }
     }
 
-    // Update ALLEEN de CSS-posities van het bestaande element i.p.v. het te slopen
-    // en opnieuw op te bouwen. Bestaat het element nog niet, render het dan één keer.
+    // Update ONLY the CSS positions of the existing element instead of tearing it
+    // down and rebuilding it. If the element does not exist yet, render it once.
     const frameEl = view.canvas.querySelector(`[data-frame-id="${frame.id}"]`);
     if(frameEl){
       updateFrameElement(frameEl, frame);
@@ -657,17 +657,17 @@ function relayoutSpreadWithGap(spreadModel){
   });
 }
 
-// Schrijft de actuele (handmatig versleepte/geresizede) geometrie van een frame
-// terug naar het bijbehorende slot, zodat relayoutSpreadWithGap (de Ruimte-slider)
-// daarna van DEZE handmatige maat uitgaat i.p.v. de oorspronkelijke sjabloonmaat.
-// We slaan de "tile" op (frame + huidige gap-inset terug-uitgeklapt) zodat
-// mmToLayout het frame bij dezelfde gap exact reproduceert en bij een andere gap
-// de naden correct herberekent. Raakt de foto-cover/-focus en snap NIET aan.
+// Writes the current (manually dragged/resized) geometry of a frame back to its
+// matching slot, so relayoutSpreadWithGap (the Spacing slider) works from THIS
+// manual size afterwards instead of the original template size. We store the
+// "tile" (frame + current gap inset folded back out) so mmToLayout reproduces the
+// frame exactly at the same gap, and recalculates the seams correctly at a
+// different gap. Does NOT touch the photo cover/focus or snapping.
 function writeBackResizedSlot(spreadModel, frameData){
   if(!spreadModel) return;
-  // Serbest stil (sjabloonloze) spreads hebben nog geen slots-array. Initialiseer
-  // die hier zodat ook handmatig toegevoegde/verplaatste frames een dynamisch
-  // slot krijgen en de Ruimte-slider (relayoutSpreadWithGap) live blijft werken.
+  // Free-style (template-less) spreads have no slots array yet. Initialize it here
+  // so manually added/moved frames also get a dynamic slot and the Spacing slider
+  // (relayoutSpreadWithGap) keeps working live.
   if(!Array.isArray(spreadModel.slots)) spreadModel.slots = [];
   const index = spreadModel.frames.indexOf(frameData);
   if(index < 0) return;
@@ -675,7 +675,7 @@ function writeBackResizedSlot(spreadModel, frameData){
   const [spreadWidth, spreadHeight] = formats[project.format];
   const gap = typeof spreadModel.gap === "number" ? spreadModel.gap : 5;
 
-  // Gerenderd frame -> genormaliseerde coords (0..1).
+  // Rendered frame -> normalized coords (0..1).
   const nx = frameData.x / spreadWidth;
   const ny = frameData.y / spreadHeight;
   const nw = frameData.width / spreadWidth;
@@ -683,20 +683,20 @@ function writeBackResizedSlot(spreadModel, frameData){
 
   const halfGapX = (gap / Math.max(1, spreadWidth)) / 2;
   const halfGapY = (gap / Math.max(1, spreadHeight)) / 2;
-  // Kenar Boşluğu meenemen in de rand-detectie: een frame dat door padding al
-  // p` px van de albumrand af staat, moet nog steeds als "raakt de rand" gelden
-  // zodat de tile tot 0/1 uitklapt en mmToLayout de padding daarna schoon
-  // opnieuw toepast (geen dubbele inset / drift). padding=0 => ongewijzigd.
+  // Include the margin in the edge detection: a frame already sitting p px away
+  // from the album edge because of padding must still count as "touches the edge",
+  // so the tile expands to 0/1 and mmToLayout then re-applies the padding cleanly
+  // (no double inset / drift). padding=0 => unchanged.
   const padX = (spreadModel.padding || 0) / Math.max(1, spreadWidth);
   const padY = (spreadModel.padding || 0) / Math.max(1, spreadHeight);
 
-  // Raakt het frame een album-rand? Daar past mmToLayout geen gap toe; intern wel.
+  // Does the frame touch an album edge? mmToLayout applies no gap there; it does internally.
   const touchesLeft   = nx <= halfGapX + padX + 0.001;
   const touchesTop    = ny <= halfGapY + padY + 0.001;
   const touchesRight  = (nx + nw) >= 1 - (halfGapX + padX + 0.001);
   const touchesBottom = (ny + nh) >= 1 - (halfGapY + padY + 0.001);
 
-  // Klap de gap-inset terug uit naar de "tile", binnen [0..1] geklemd.
+  // Fold the gap inset back out into the "tile", clamped within [0..1].
   const tileLeft   = touchesLeft   ? 0 : nx - halfGapX;
   const tileTop    = touchesTop    ? 0 : ny - halfGapY;
   const tileRight  = touchesRight  ? 1 : (nx + nw) + halfGapX;
@@ -750,17 +750,17 @@ function applyTemplateToActiveSpread(templateId){
   const [spreadWidth, spreadHeight] = formats[project.format];
   const existingPhotoIds = activeSpread.frames.map(frame => frame.photoId).filter(Boolean);
 
-  // Onthoud het sjabloon op de spread zodat de per-spread Ruimte-slider de
-  // slotposities later live kan herberekenen.
-  // Deep clone: koppel de spread los van het gedeelde catalogus-object zodat
-  // niets in de catalogus (of een preview-render) deze slotcoördinaten via een
-  // gedeelde referentie kan muteren.
+  // Remember the template on the spread so the per-spread Spacing slider can
+  // recalculate the slot positions live later on.
+  // Deep clone: detach the spread from the shared catalog object so nothing in
+  // the catalog (or a preview render) can mutate these slot coordinates through
+  // a shared reference.
   activeSpread.slots = JSON.parse(JSON.stringify(template.slots));
 
-  // Bij ELKE nieuwe sjabloonkeuze reset de gap naar de actuele globale onderbalk
-  // (templateGapPx) en wordt de spread weer ontgrendeld. Zo opent een ander
-  // sjabloon altijd met de huidige globale Ruimte; een eerdere eigen instelling
-  // van deze spread wordt bewust losgelaten zodra een nieuw sjabloon wordt gekozen.
+  // On EVERY new template choice the gap resets to the current global bottom bar
+  // (templateGapPx) and the spread is unlocked again. That way another template
+  // always opens with the current global Spacing; an earlier per-spread setting is
+  // deliberately dropped as soon as a new template is chosen.
   activeSpread.gap = templateGapPx;
   activeSpread.gapUserSet = false;
   const spreadGap = templateGapPx;
@@ -768,7 +768,7 @@ function applyTemplateToActiveSpread(templateId){
   const spreadPadding = typeof activeSpread.padding === "number" ? activeSpread.padding : 0;
   activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap, spreadPadding));
 
-  // Houd de Ruimte-slider van deze spread in sync met de gebruikte gap.
+  // Keep this spread's Spacing slider in sync with the gap in use.
   const gapView = getSpreadView(activeSpread);
   if(gapView && gapView.gapSlider){
     gapView.gapSlider.value = String(spreadGap);
@@ -778,10 +778,10 @@ function applyTemplateToActiveSpread(templateId){
   existingPhotoIds.forEach((photoId, index) => {
     const frame = activeSpread.frames[index];
     if(frame && photoId){
-      // SYNCHRONE cover-berekening uit de al verzegelde natuurlijke maten
-      // (importPhotoFiles sealt naturalWidth/Height). Zo klopt de EERSTE render
-      // meteen; geen async 'squeeze'-frame meer terwijl fillFrameWithPhoto's
-      // Image().onload nog moet vuren. Zelfde wiskunde als relayoutSpreadWithGap.
+      // SYNCHRONOUS cover calculation from the already sealed natural sizes
+      // (importPhotoFiles seals naturalWidth/Height). This makes the FIRST render
+      // correct right away; no more async 'squeeze' frame while fillFrameWithPhoto's
+      // Image().onload has yet to fire. Same math as relayoutSpreadWithGap.
       const photo = getPhotoById(photoId);
       if(photo && photo.naturalWidth && photo.naturalHeight){
         const ratio = photo.naturalWidth / photo.naturalHeight;
@@ -796,9 +796,9 @@ function applyTemplateToActiveSpread(templateId){
         frame.imageTop = (frame.height - frame.imageHeight) / 2;
         ensureImageCoversFrame(frame);
       }
-      // Nog steeds aanroepen: sealt natuurlijke maten voor foto's die er (nog)
-      // geen hebben en houdt bibliotheek/preview in sync. Voor reeds verzegelde
-      // foto's herberekent onload exact dezelfde waarden — dus onzichtbaar.
+      // Still called: seals natural sizes for photos that do not have them (yet)
+      // and keeps library/preview in sync. For already sealed photos, onload
+      // recalculates exactly the same values — so it is invisible.
       fillFrameWithPhoto(frame, photoId);
     }
   });
@@ -839,7 +839,7 @@ async function readExifCaptureDate(file){
       offset += size;
     }
   } catch (error) {
-    console.warn('EXIF kon niet worden gelezen', error);
+    console.warn('EXIF could not be read', error);
   }
   return null;
 }
@@ -921,11 +921,11 @@ function toggleTheme(){
 
 function sanitizeProjectName(name){
   const cleaned = String(name || '').trim().replace(/[\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ');
-  return cleaned || 'Nieuw album';
+  return cleaned || 'New album';
 }
 
 function syncProjectUI(){
-  const safeName = project.name || 'Nieuw album';
+  const safeName = project.name || 'New album';
   projectNameInput.value = safeName;
   formatSelect.value = project.format;
   projectSummaryName.textContent = safeName;
@@ -935,27 +935,27 @@ function syncProjectUI(){
 function openIntroOverlay(mode = 'edit'){
   introMode = mode;
   syncProjectUI();
-  // Zodra de overlay opent zijn we niet langer in "live-preview review": verberg
-  // de terugkeer-knop (de terugkeer-handler heeft hem al verborgen; dit dekt ook
-  // een verse wizard/edit terwijl de knop nog zichtbaar zou staan).
+  // As soon as the overlay opens we are no longer in "live preview review": hide
+  // the return button (the return handler already hid it; this also covers a fresh
+  // wizard/edit while the button would still be visible).
   if(wizardReturnBtn) wizardReturnBtn.classList.add('hidden');
   const wizard = mode === 'wizard';
   if(introCard) introCard.classList.toggle('wizard-mode', wizard);
   if(wizard){
     if(wizardPreserveOnOpen){
-      // Terug vanuit de live-preview: pagina-indeling behouden, NIET resetten en
-      // niet naar stap 1 springen — de aanroeper zet ons zo op stap 2.
+      // Coming back from the live preview: keep the page layout, do NOT reset and
+      // do not jump to step 1 — the caller puts us on step 2 momentarily.
       wizardPreserveOnOpen = false;
     } else {
-      // Verse wizard: reset de pagina-indeling en start bij stap 1.
+      // Fresh wizard: reset the page layout and start at step 1.
       resetWizardState();
       goToWizardStep(1);
       refreshWizardUI();
     }
   } else {
-    // Klassieke instellingen-modus: forceer paneel 1 en het juiste knoplabel.
+    // Classic settings mode: force panel 1 and the right button label.
     wizardPanels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === '1'));
-    startProjectBtn.textContent = mode === 'startup' ? 'Project openen' : 'Instellingen toepassen';
+    startProjectBtn.textContent = mode === 'startup' ? 'Open project' : 'Apply settings';
   }
   introOverlay.classList.remove('hidden');
   setTimeout(() => projectNameInput.focus(), 0);
@@ -1041,11 +1041,11 @@ function setActiveSpread(spreadModel){
 }
 
 function createSpreadModel(){
-  // gap start gelijk aan de globale Ruimte-bar (alleen als startwaarde).
-  // gapUserSet=false => deze spread gebruikt nog de globale default; zodra de
-  // gebruiker de eigen slider aanraakt wordt hij volledig onafhankelijk.
-  // padding = per-spread buiteninset (Kenar Boşluğu): afstand van de foto's tot
-  // de albumrand. Standaard 0 = full-bleed tot de rand, net als voorheen.
+  // gap starts equal to the global Spacing bar (as a starting value only).
+  // gapUserSet=false => this spread still uses the global default; as soon as the
+  // user touches its own slider it becomes fully independent.
+  // padding = per-spread outer inset (Margin): distance from the photos to the
+  // album edge. Default 0 = full-bleed to the edge, just like before.
   return { id: uid("spread"), frames: [], gap: templateGapPx, gapUserSet: false, padding: 0 };
 }
 
@@ -1065,12 +1065,12 @@ function buildSpreadView(spreadModel){
   colorInput.style.marginLeft = "8px";
   label.appendChild(colorInput);
 
-  // --- Per-spread Ruimte (gap) slider: kompakt en horizontaal naast de kleur ---
+  // --- Per-spread Spacing (gap) slider: compact and horizontal next to the color ---
   if(typeof spreadModel.gap !== "number") spreadModel.gap = templateGapPx;
 
   const gapLabel = document.createElement("span");
   gapLabel.className = "spreadGapLabel";
-  gapLabel.textContent = "Ruimte";
+  gapLabel.textContent = "Spacing";
   label.appendChild(gapLabel);
 
   const gapSlider = document.createElement("input");
@@ -1080,7 +1080,7 @@ function buildSpreadView(spreadModel){
   gapSlider.step = "1";
   gapSlider.className = "spreadGap";
   gapSlider.value = String(spreadModel.gap);
-  gapSlider.title = "Ruimte tussen de foto's op deze pagina";
+  gapSlider.title = "Spacing between the photos on this page";
   label.appendChild(gapSlider);
 
   const gapValue = document.createElement("span");
@@ -1088,9 +1088,9 @@ function buildSpreadView(spreadModel){
   gapValue.textContent = `${spreadModel.gap} px`;
   label.appendChild(gapValue);
 
-  // Live: alleen DEZE spread herberekent zijn slotposities met de nieuwe gap.
-  // De gebruiker heeft nu een eigen keuze gemaakt: markeer onafhankelijk zodat
-  // de globale bar deze spread nooit meer als default overschrijft.
+  // Live: only THIS spread recalculates its slot positions with the new gap.
+  // The user has now made their own choice: mark it independent so the global bar
+  // never overwrites this spread as a default again.
   gapSlider.addEventListener("input", e => {
     e.stopPropagation();
     const value = Number(e.target.value || 0);
@@ -1100,12 +1100,12 @@ function buildSpreadView(spreadModel){
     relayoutSpreadWithGap(spreadModel);
   });
 
-  // --- Per-spread Kenar Boşluğu (padding) slider: buiteninset tot de albumrand ---
+  // --- Per-spread Margin (padding) slider: outer inset to the album edge ---
   if(typeof spreadModel.padding !== "number") spreadModel.padding = 0;
 
   const padLabel = document.createElement("span");
   padLabel.className = "spreadPadLabel";
-  padLabel.textContent = "Kenar Boşluğu";
+  padLabel.textContent = "Margin";
   padLabel.style.marginLeft = "12px";
   label.appendChild(padLabel);
 
@@ -1116,7 +1116,7 @@ function buildSpreadView(spreadModel){
   padSlider.step = "1";
   padSlider.className = "spreadPaddingSlider";
   padSlider.value = String(spreadModel.padding || 0);
-  padSlider.title = "Afstand van de foto's tot de albumrand op deze pagina";
+  padSlider.title = "Distance from the photos to the album edge on this page";
   label.appendChild(padSlider);
 
   const padValue = document.createElement("span");
@@ -1124,7 +1124,7 @@ function buildSpreadView(spreadModel){
   padValue.textContent = `${spreadModel.padding || 0} px`;
   label.appendChild(padValue);
 
-  // Live: alleen DEZE spread krimpt vanaf de albumrand met de nieuwe padding.
+  // Live: only THIS spread shrinks from the album edge with the new padding.
   padSlider.addEventListener("input", e => {
     e.stopPropagation();
     const value = Number(e.target.value || 0);
@@ -1352,19 +1352,19 @@ function applySnap(x, y, frameData, spreadModel){
   return result;
 }
 
-// Snap-variant voor het BOUNDARY-tijdens-resizen. Dezelfde drempel (3) en exact
-// dezelfde snap-doelen als applySnap (canvasranden, canvasmidden, randen + midden
-// van andere kaders), maar nu snapt alleen de BEWEGENDE rand van het kader.
-// Geeft de gesnapte buiten-boundaries terug (x/y/width/height). De cover-, schaal-
-// en centreer-wiskunde van de foto blijft hierdoor volledig ongemoeid: die draait
-// gewoon op de (gesnapte) width/height zoals voorheen.
+// Snap variant for the BOUNDARY-during-resize. Same threshold (3) and exactly the
+// same snap targets as applySnap (canvas edges, canvas center, edges + center of
+// other frames), except only the MOVING edge of the frame snaps. Returns the
+// snapped outer boundaries (x/y/width/height). The photo's cover, scale and
+// centering math is left completely untouched by this: it simply runs on the
+// (snapped) width/height as before.
 function snapResizeBox(curX, curY, curW, curH, moving, spreadModel, frameData){
   const snapThreshold = 3;
   const [canvasW, canvasH] = formats[project.format];
   let left = curX, top = curY, right = curX + curW, bottom = curY + curH;
 
-  const vTargets = [0, canvasW, canvasW / 2];          // verticale randen (x-as)
-  const hTargets = [0, canvasH, canvasH / 2];          // horizontale randen (y-as)
+  const vTargets = [0, canvasW, canvasW / 2];          // vertical edges (x axis)
+  const hTargets = [0, canvasH, canvasH / 2];          // horizontal edges (y axis)
   spreadModel.frames.forEach(other => {
     if(other.id === frameData.id) return;
     vTargets.push(other.x, other.x + other.width,  other.x + other.width  / 2);
@@ -1380,13 +1380,13 @@ function snapResizeBox(curX, curY, curW, curH, moving, spreadModel, frameData){
     return best;
   };
 
-  // Alleen de bewegende rand snapt; de tegenoverliggende (geankerde) rand blijft vast.
+  // Only the moving edge snaps; the opposite (anchored) edge stays fixed.
   if(moving.left)   left   = Math.min(snapEdge(left,   vTargets), right - 50);
   if(moving.right)  right  = Math.max(snapEdge(right,  vTargets), left + 50);
   if(moving.top)    top    = Math.min(snapEdge(top,    hTargets), bottom - 50);
   if(moving.bottom) bottom = Math.max(snapEdge(bottom, hTargets), top + 50);
 
-  // Binnen de albumgrenzen houden.
+  // Keep within the album bounds.
   left   = Math.max(0, left);
   top    = Math.max(0, top);
   right  = Math.min(canvasW, right);
@@ -1409,7 +1409,7 @@ function restoreEmptyLibraryState(){
         <circle cx="8.5" cy="8.5" r="1.5"/>
         <polyline points="21 15 16 10 5 21"/>
       </svg>
-      <div class="library-empty-text">Klik op "Foto's Toevoegen"</div>
+      <div class="library-empty-text">Click "Add Photos"</div>
     </div>
   `;
 }
@@ -1434,9 +1434,9 @@ function renderLibrary(){
     img.style.height = `${libraryThumbSize}px`;
     img.title = photo.name;
     img.addEventListener("click", () => {
-      // Slim plaatsen: is er een slot geselecteerd, vul dan exact dat vak met
-      // de aangeklikte foto en hef de selectie op. Anders het oude gedrag:
-      // open een nieuw, los kader (of vul het eerste lege templatevak).
+      // Smart placement: if a slot is selected, fill exactly that slot with the
+      // clicked photo and clear the selection. Otherwise the old behavior: open a
+      // new, loose frame (or fill the first empty template slot).
       if(selectedFrameId !== null){
         const targetFrame = (activeSpread ? activeSpread.frames : []).find(frame => frame.id === selectedFrameId)
           || project.spreads.flatMap(spread => spread.frames).find(frame => frame.id === selectedFrameId);
@@ -1446,7 +1446,7 @@ function renderLibrary(){
           document.querySelectorAll('.photo-frame.selected-frame').forEach(el => el.classList.remove('selected-frame'));
           return;
         }
-        // Geselecteerd vak bestaat niet meer: val terug op het oude gedrag.
+        // The selected slot no longer exists: fall back to the old behavior.
         selectedFrameId = null;
       }
       if(activeSpread) addPhotoToSpread(activeSpread, photo.id, 50, 50);
@@ -1472,7 +1472,7 @@ function renderLibrary(){
     const status = document.createElement("div");
     status.className = "thumbStatus";
     const captureLabel = photo.captureDate ? ` • ${formatCaptureDate(photo.captureDate)}` : '';
-    status.textContent = usageCount ? `${usageCount}x gebruikt${captureLabel}` : `Nog niet gebruikt${captureLabel}`;
+    status.textContent = usageCount ? `Used ${usageCount}x${captureLabel}` : `Not used yet${captureLabel}`;
     meta.appendChild(status);
 
     wrapper.appendChild(meta);
@@ -1940,7 +1940,7 @@ function renderFrame(spreadModel, frameData){
   if(photo?.src){
     imgEl.src = photo.src;
   } else {
-    imgEl.alt = 'Leeg templatevak';
+    imgEl.alt = 'Empty template slot';
   }
   frameEl.appendChild(imgEl);
 
@@ -1953,7 +1953,7 @@ function renderFrame(spreadModel, frameData){
         <path d="M12 8v8"></path>
         <path d="M8 12h8"></path>
       </svg>
-      <span>Klik op een foto om dit vak te vullen</span>
+      <span>Click a photo to fill this slot</span>
     `;
     frameEl.appendChild(placeholder);
   }
@@ -1984,12 +1984,12 @@ function renderFrame(spreadModel, frameData){
 
   const cropWidthHandle = document.createElement('div');
   cropWidthHandle.className = 'crop-width-handle';
-  cropWidthHandle.title = 'Croppen links en rechts';
+  cropWidthHandle.title = 'Crop left and right';
   frameEl.appendChild(cropWidthHandle);
 
   const cropHeightHandle = document.createElement('div');
   cropHeightHandle.className = 'crop-height-handle';
-  cropHeightHandle.title = 'Croppen boven en onder';
+  cropHeightHandle.title = 'Crop top and bottom';
   frameEl.appendChild(cropHeightHandle);
 
   // --- Nieuwe symmetrische handles (8 richtingen) ---
@@ -2009,12 +2009,12 @@ function renderFrame(spreadModel, frameData){
 
   const cropWidthHandleLeft = document.createElement('div');
   cropWidthHandleLeft.className = 'crop-width-handle crop-width-handle-left';
-  cropWidthHandleLeft.title = 'Croppen links en rechts';
+  cropWidthHandleLeft.title = 'Crop left and right';
   frameEl.appendChild(cropWidthHandleLeft);
 
   const cropHeightHandleTop = document.createElement('div');
   cropHeightHandleTop.className = 'crop-height-handle crop-height-handle-top';
-  cropHeightHandleTop.title = 'Croppen boven en onder';
+  cropHeightHandleTop.title = 'Crop top and bottom';
   frameEl.appendChild(cropHeightHandleTop);
 
   view.canvas.appendChild(frameEl);
@@ -2193,7 +2193,7 @@ async function handleProjectFileInput(e){
     const parsed = JSON.parse(text);
     loadProject(parsed);
   } catch (error) {
-    alert('Projectbestand kon niet worden geladen. Controleer of dit een geldig AlbumDesigner JSON-bestand is.');
+    alert('The project file could not be loaded. Check that this is a valid AlbumDesigner JSON file.');
     console.error(error);
   }
   e.target.value = '';
@@ -2297,12 +2297,12 @@ function saveProject(){
 
 function normalizeLoadedProject(data){
   const next = createEmptyProject(data.format && formats[data.format] ? data.format : '606x206');
-  next.name = sanitizeProjectName(data.name || 'Nieuw album');
+  next.name = sanitizeProjectName(data.name || 'New album');
 
   if(Array.isArray(data.library)){
     next.library = data.library.map(item => ({
       id: item.id || uid('img'),
-      name: item.name || 'Onbenoemde foto',
+      name: item.name || 'Untitled photo',
       src: item.src,
       createdAt: item.createdAt || Date.now(),
       captureDate: item.captureDate || null,
@@ -2522,23 +2522,33 @@ async function exportAllSpreadsPDF(){
         pdf.addPage([spreadWidthMm, spreadHeightMm], orientation);
       }
 
-      // Dinamik Arka Plan Rengi Çözüm Katmanı
-      // Öncelik spread'in kendi renginde, yoksa projenin genel arka planında, o da yoksa beyaz (#ffffff)
-      const hexColor = spread.background || project.spreadBackground || '#ffffff';
+      // Dinamik Resilient Arka Plan Boyama Katmanı
+      let hexColor = '#ffffff';
+      if (spread) {
+        // Öncelik spread modelinde, yoksa arayüzdeki renk inputunda, yoksa proje genelinde
+        const view = spreadViews.find(v => v.model.id === spread.id);
+        const colorInput = view?.canvas?.parentNode?.querySelector(".spreadColor");
+        hexColor = spread.background || colorInput?.value || project.spreadBackground || '#ffffff';
+      }
 
-      // HEX kodunu RGB formatına temiz bir şekilde parçala
+      // Resilient HEX to RGB Parser — NaN-güvenli: 0 kanalı (ör. siyah #000000) korunur
       let r = 255, g = 255, b = 255;
-      if (hexColor.startsWith('#')) {
-        const cleanedHex = hexColor.replace('#', '');
+      try {
+        const cleanedHex = String(hexColor).trim().replace('#', '');
+        // parseInt sonucu NaN ise beyaza düş; 0 geçerli bir değerdir ve olduğu gibi kalır
+        const channel = (raw) => { const n = parseInt(raw, 16); return Number.isNaN(n) ? 255 : n; };
         if (cleanedHex.length === 6) {
-          r = parseInt(cleanedHex.substring(0, 2), 16);
-          g = parseInt(cleanedHex.substring(2, 4), 16);
-          b = parseInt(cleanedHex.substring(4, 6), 16);
+          r = channel(cleanedHex.substring(0, 2));
+          g = channel(cleanedHex.substring(2, 4));
+          b = channel(cleanedHex.substring(4, 6));
         } else if (cleanedHex.length === 3) {
-          r = parseInt(cleanedHex.charAt(0) + cleanedHex.charAt(0), 16);
-          g = parseInt(cleanedHex.charAt(1) + cleanedHex.charAt(1), 16);
-          b = parseInt(cleanedHex.charAt(2) + cleanedHex.charAt(2), 16);
+          r = channel(cleanedHex.charAt(0) + cleanedHex.charAt(0));
+          g = channel(cleanedHex.charAt(1) + cleanedHex.charAt(1));
+          b = channel(cleanedHex.charAt(2) + cleanedHex.charAt(2));
         }
+      } catch (colorErr) {
+        console.warn("Color parsing failed, falling back to white:", colorErr);
+        r = 255; g = 255; b = 255;
       }
 
       pdf.setFillColor(r, g, b);
@@ -2555,7 +2565,7 @@ async function exportAllSpreadsPDF(){
     pdf.save(`${sanitizeProjectName(project.name)}.pdf`);
   } catch (error) {
     console.error(error);
-    alert('Drukwerkexport is mislukt. Controleer of alle afbeeldingen volledig geladen zijn en probeer opnieuw.');
+    alert('Print export failed. Check that all images are fully loaded and try again.');
   } finally {
     document.body.classList.remove('exporting');
   }
@@ -2625,8 +2635,8 @@ function refreshWizardUI(){
   if(wizardNext1) wizardNext1.disabled = !hasPhotos;
   if(wizardUploadText){
     wizardUploadText.textContent = hasPhotos
-      ? `${project.library.length} foto's geladen — voeg meer toe of ga verder`
-      : "Toplu Foto Yükle";
+      ? `${project.library.length} photos loaded — add more or continue`
+      : "Bulk Upload Photos";
   }
   if(wizardStep === 2) renderWizardStep2();
   if(wizardStep === 3) renderWizardStep3();
@@ -2674,7 +2684,7 @@ function renderWizardStep2(){
   if(wizardLibraryEl){
     wizardLibraryEl.innerHTML = "";
     if(!project.library.length){
-      wizardLibraryEl.innerHTML = '<div class="wizard-empty">Nog geen foto\'s geladen. Ga terug naar stap 1.</div>';
+      wizardLibraryEl.innerHTML = '<div class="wizard-empty">No photos loaded yet. Go back to step 1.</div>';
     } else {
       sortLibraryItems(project.library).forEach(photo => {
         const cell = document.createElement("button");
@@ -2696,7 +2706,7 @@ function renderWizardStep2(){
           pages.forEach(pageNr => {
             const badge = document.createElement("span");
             badge.className = "wizard-thumb-badge";
-            badge.textContent = `Sayfa ${pageNr}`;
+            badge.textContent = `Page ${pageNr}`;
             badges.appendChild(badge);
           });
           cell.appendChild(badges);
@@ -2724,12 +2734,12 @@ function renderWizardStep2(){
 
       const title = document.createElement("span");
       title.className = "wizard-page-title";
-      title.textContent = `Sayfa ${index + 1}`;
+      title.textContent = `Page ${index + 1}`;
       head.appendChild(title);
 
       const count = document.createElement("span");
       count.className = "wizard-page-count";
-      count.textContent = `${page.photoIds.length} foto${page.photoIds.length === 1 ? "" : "'s"}`;
+      count.textContent = `${page.photoIds.length} photo${page.photoIds.length === 1 ? "" : "s"}`;
       head.appendChild(count);
 
       // Modern Action Controls Container
@@ -2742,7 +2752,7 @@ function renderWizardStep2(){
       moveUpBtn.type = "button";
       moveUpBtn.className = "btn-wizard-action move-up";
       moveUpBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>`;
-      moveUpBtn.title = "Yukarı Taşı";
+      moveUpBtn.title = "Move Up";
       moveUpBtn.disabled = index === 0;
       if(!moveUpBtn.disabled) {
         moveUpBtn.addEventListener("click", (e) => {
@@ -2762,7 +2772,7 @@ function renderWizardStep2(){
       moveDownBtn.type = "button";
       moveDownBtn.className = "btn-wizard-action move-down";
       moveDownBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
-      moveDownBtn.title = "Aşağı Taşı";
+      moveDownBtn.title = "Move Down";
       moveDownBtn.disabled = index === wizardState.pages.length - 1;
       if(!moveDownBtn.disabled) {
         moveDownBtn.addEventListener("click", (e) => {
@@ -2782,7 +2792,7 @@ function renderWizardStep2(){
       del.type = "button";
       del.className = "btn-wizard-action delete";
       del.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-      del.title = "Pagina verwijderen";
+      del.title = "Delete page";
       del.addEventListener("click", (e) => {
         e.stopPropagation();
         removeWizardPage(index);
@@ -2797,7 +2807,7 @@ function renderWizardStep2(){
       if(!page.photoIds.length){
         const hint = document.createElement("div");
         hint.className = "wizard-page-hint";
-        hint.textContent = "Klik links op foto's om ze hier te plaatsen.";
+        hint.textContent = "Click photos on the left to place them here.";
         strip.appendChild(hint);
       } else {
         page.photoIds.forEach((pid, pi) => {
@@ -2806,7 +2816,7 @@ function renderWizardStep2(){
           const mini = document.createElement("button");
           mini.type = "button";
           mini.className = "wizard-mini";
-          mini.title = "Klik om te verwijderen";
+          mini.title = "Click to remove";
 
           const im = document.createElement("img");
           im.src = photo.src;
@@ -2830,7 +2840,7 @@ function renderWizardStep2(){
       if(page.photoIds.length > 6){
         const warn = document.createElement("div");
         warn.className = "wizard-page-warn";
-        warn.textContent = "Max 6 foto's per sjabloon — extra foto's worden niet geplaatst.";
+        warn.textContent = "Max 6 photos per template — extra photos will not be placed.";
         card.appendChild(warn);
       }
 
@@ -2848,8 +2858,8 @@ function renderWizardStep3(){
 
   if(wizardSummary){
     wizardSummary.textContent = pages.length
-      ? `${pages.length} pagina('s) worden opgebouwd met in totaal ${totalPhotos} foto's, elk automatisch in een passend full-bleed sjabloon.`
-      : "Voeg eerst foto's toe aan minstens één pagina in stap 2.";
+      ? `${pages.length} page(s) will be built with ${totalPhotos} photos in total, each automatically in a matching full-bleed template.`
+      : "First add photos to at least one page in step 2.";
   }
   if(wizardSummaryGrid){
     wizardSummaryGrid.innerHTML = "";
@@ -2857,7 +2867,7 @@ function renderWizardStep3(){
       const n = Math.min(6, page.photoIds.length);
       const chip = document.createElement("div");
       chip.className = "wizard-summary-chip";
-      chip.innerHTML = `<b>Sayfa ${i + 1}</b><span>${n} foto${n === 1 ? "" : "'s"}</span>`;
+      chip.innerHTML = `<b>Page ${i + 1}</b><span>${n} photo${n === 1 ? "" : "s"}</span>`;
       wizardSummaryGrid.appendChild(chip);
     });
   }
@@ -2936,7 +2946,7 @@ function finishWizard(){
 
   if(!pages.length){
     console.warn("WIZARD: No pages found to build!");
-    alert("Lütfen en az bir sayfaya fotoğraf ekleyin veya yeni bir sayfa açın.");
+    alert("Please add photos to at least one page, or create a new page.");
     return;
   }
 
@@ -2963,7 +2973,7 @@ function finishWizard(){
     if(wizardReturnBtn) wizardReturnBtn.classList.remove("hidden");
   } catch (err) {
     console.error("CRITICAL WIZARD CRASH DETECTED IN BROWSER:", err);
-    alert("Sihirbaz albümü oluştururken bir hata oluştu: " + (err && err.message ? err.message : err));
+    alert("An error occurred while the wizard was building the album: " + (err && err.message ? err.message : err));
   }
 }
 

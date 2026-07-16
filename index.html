@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AlbumDesigner - Professionele Fotoalbum Editor</title>
+<title>AlbumDesigner - Professional Photo Album Editor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,11 +11,11 @@
 
 <div id="topbar">
   <div id="projectSummary">
-    <strong id="projectSummaryName">Nieuw album</strong>
+    <strong id="projectSummaryName">New album</strong>
     <span id="projectSummaryMeta">20×30 cm</span>
   </div>
 
-  <button id="wizardReturnBtn" class="btn hidden" style="background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); border-color: #d97706;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Sihirbaza Geri Dön</button>
+  <button id="wizardReturnBtn" class="btn hidden" style="background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); border-color: #d97706;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Back to Wizard</button>
 
 
 <div id="spreadBadge">
@@ -37,7 +37,7 @@
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
       <circle cx="12" cy="13" r="4"/>
     </svg>
-    Foto's Toevoegen
+    Add Photos
   </label>
   <input type="file" id="upload" multiple>
 
@@ -53,7 +53,7 @@
       <polyline points="3 6 5 6 21 6"/>
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
     </svg>
-    Verwijderen
+    Delete
   </button>
   <button class="btn" onclick="saveProject()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -61,7 +61,7 @@
       <polyline points="17 21 17 13 7 13 7 21"/>
       <polyline points="7 3 7 8 15 8"/>
     </svg>
-    Project Opslaan
+    Save Project
   </button>
   <button class="btn btn-primary" onclick="exportAllSpreadsPDF()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -74,7 +74,7 @@
   </button>
 
 
-  <button class="btn theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Thema wisselen" title="Thema wisselen">
+  <button class="btn theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="5"/>
       <line x1="12" y1="1" x2="12" y2="3"/>
@@ -101,24 +101,24 @@
   <div class="intro-card" id="introCard">
 
     <div class="wizard-steps" id="wizardSteps">
-      <div class="wizard-dot active" data-step="1"><b>1</b><span>Instellingen</span></div>
+      <div class="wizard-dot active" data-step="1"><b>1</b><span>Settings</span></div>
       <div class="wizard-line"></div>
-      <div class="wizard-dot" data-step="2"><b>2</b><span>Pagina's</span></div>
+      <div class="wizard-dot" data-step="2"><b>2</b><span>Pages</span></div>
       <div class="wizard-line"></div>
-      <div class="wizard-dot" data-step="3"><b>3</b><span>Genereren</span></div>
+      <div class="wizard-dot" data-step="3"><b>3</b><span>Generate</span></div>
     </div>
 
-    <!-- STAP 1: instellingen + bulk upload -->
+    <!-- STEP 1: settings + bulk upload -->
     <div class="wizard-panel active" data-panel="1">
       <h1 class="intro-title">Album Designer</h1>
-      <p class="intro-subtitle">Kies de basisinstellingen en laad je foto's. Daarna bouwt de wizard je album automatisch op.</p>
+      <p class="intro-subtitle">Choose the basic settings and load your photos. The wizard then builds your album automatically.</p>
       <div class="intro-grid">
         <div class="field-group">
-          <label for="startupProjectName">Projectnaam</label>
-          <input id="startupProjectName" type="text" placeholder="Bijv. Trouwalbum Emma & Sam" value="Nieuw album">
+          <label for="startupProjectName">Project name</label>
+          <input id="startupProjectName" type="text" placeholder="E.g. Wedding album Emma &amp; Sam" value="New album">
         </div>
         <div class="field-group">
-          <label for="startupFormat">Formaat</label>
+          <label for="startupFormat">Format</label>
           <select id="startupFormat">
             <option value="306x156">15×15 cm</option>
             <option value="406x156">15×20 cm</option>
@@ -133,39 +133,39 @@
           </select>
         </div>
         <div class="field-group wizard-only">
-          <label>Foto's</label>
+          <label>Photos</label>
           <label class="wizard-upload-zone" for="wizardUpload" id="wizardUploadZone">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <span id="wizardUploadText">Toplu Foto Yükle</span>
-            <small>Klik om meerdere foto's tegelijk te kiezen</small>
+            <span id="wizardUploadText">Bulk Upload Photos</span>
+            <small>Click to select multiple photos at once</small>
           </label>
           <input type="file" id="wizardUpload" multiple>
         </div>
       </div>
       <div class="intro-actions">
-        <button class="btn btn-primary edit-only" id="startProjectBtn">Instellingen toepassen</button>
-        <button class="btn btn-primary wizard-only" id="wizardNext1" disabled>Devam Et</button>
+        <button class="btn btn-primary edit-only" id="startProjectBtn">Apply settings</button>
+        <button class="btn btn-primary wizard-only" id="wizardNext1" disabled>Continue</button>
       </div>
       <div class="intro-secondary">
-        <span class="intro-note">Of laad direct een bestaand projectbestand.</span>
+        <span class="intro-note">Or load an existing project file directly.</span>
         <div>
-          <label class="btn" for="introLoadProjectInput">Project laden</label>
+          <label class="btn" for="introLoadProjectInput">Load project</label>
           <input type="file" id="introLoadProjectInput" accept="application/json">
         </div>
       </div>
     </div>
 
-    <!-- STAP 2: foto's verdelen over pagina-pakketten -->
+    <!-- STEP 2: distribute photos across page groups -->
     <div class="wizard-panel wizard-only" data-panel="2">
-      <h1 class="intro-title">Verdeel je foto's</h1>
-      <p class="intro-subtitle">Selecteer rechts een pagina en klik links op foto's om ze in dat pakket te plaatsen.</p>
+      <h1 class="intro-title">Distribute your photos</h1>
+      <p class="intro-subtitle">Select a page on the right and click photos on the left to place them in that group.</p>
       <div class="wizard-split">
         <div class="wizard-col wizard-col--library">
-          <div class="wizard-col-head">Fotobibliotheek <span class="wizard-col-count" id="wizardLibCount">0</span>
+          <div class="wizard-col-head">Photo library <span class="wizard-col-count" id="wizardLibCount">0</span>
             <div class="wizard-zoom-controls" style="display:inline-flex; align-items:center; gap:6px; margin-left:14px;">
               <button class="btn" id="wizardZoomOut" type="button" style="min-width:28px; width:28px; height:28px; padding:0; font-size:14px;">−</button>
               <button class="btn" id="wizardZoomIn" type="button" style="min-width:28px; width:28px; height:28px; padding:0; font-size:14px;">+</button>
@@ -174,25 +174,25 @@
           <div class="wizard-library" id="wizardLibrary"></div>
         </div>
         <div class="wizard-col wizard-col--pages">
-          <div class="wizard-col-head">Pagina-pakketten</div>
+          <div class="wizard-col-head">Page groups</div>
           <div class="wizard-pages" id="wizardPages"></div>
-          <button class="btn wizard-add-page" id="wizardAddPage" type="button">+ Sayfa Ekle</button>
+          <button class="btn wizard-add-page" id="wizardAddPage" type="button">+ Add Page</button>
         </div>
       </div>
       <div class="intro-actions">
-        <button class="btn wizard-back" data-back="1" type="button">Terug</button>
-        <button class="btn btn-primary" id="wizardNext2" type="button">Devam Et</button>
+        <button class="btn wizard-back" data-back="1" type="button">Back</button>
+        <button class="btn btn-primary" id="wizardNext2" type="button">Continue</button>
       </div>
     </div>
 
-    <!-- STAP 3: automatisch opbouwen -->
+    <!-- STEP 3: build automatically -->
     <div class="wizard-panel wizard-only" data-panel="3">
-      <h1 class="intro-title">Klaar om te bouwen</h1>
-      <p class="intro-subtitle" id="wizardSummary">Voeg eerst foto's toe aan minstens één pagina in stap 2.</p>
+      <h1 class="intro-title">Ready to build</h1>
+      <p class="intro-subtitle" id="wizardSummary">First add photos to at least one page in step 2.</p>
       <div class="wizard-summary-grid" id="wizardSummaryGrid"></div>
       <div class="intro-actions">
-        <button class="btn wizard-back" data-back="2" type="button">Terug</button>
-        <button class="btn btn-primary" id="wizardFinish" type="button">Albümü Otomatik Oluştur</button>
+        <button class="btn wizard-back" data-back="2" type="button">Back</button>
+        <button class="btn btn-primary" id="wizardFinish" type="button">Build Album Automatically</button>
       </div>
     </div>
 
@@ -209,10 +209,10 @@
   <div id="libraryToolbar">
     <div class="library-toolbar-left">
       <div id="libraryTabs">
-        <button class="library-tab active" data-mode="photos" type="button">Foto's</button>
+        <button class="library-tab active" data-mode="photos" type="button">Photos</button>
         <button class="library-tab" data-mode="templates" type="button">Templates</button>
       </div>
-      <div id="libraryTitle">Fotobibliotheek</div>
+      <div id="libraryTitle">Photo library</div>
     </div>
     <div class="library-toolbar-right">
       <div id="libraryZoomWrap">
@@ -220,29 +220,29 @@
         <input id="libraryZoom" type="range" min="60" max="150" step="2" value="60">
       </div>
       <div id="librarySortWrap">
-        <label for="librarySort">Sorteren</label>
+        <label for="librarySort">Sort</label>
         <select id="librarySort">
-          <option value="name-asc">Naam A–Z</option>
-          <option value="name-desc">Naam Z–A</option>
-          <option value="capture-desc">Opnamedatum nieuw → oud</option>
-          <option value="capture-asc">Opnamedatum oud → nieuw</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="capture-desc">Capture date new → old</option>
+          <option value="capture-asc">Capture date old → new</option>
         </select>
       </div>
       <div id="templateCountWrap" class="hidden">
-        <label for="templateCount">Foto's</label>
+        <label for="templateCount">Photos</label>
         <select id="templateCount">
-          <option value="1">1 foto</option>
-          <option value="2">2 foto's</option>
-          <option value="3">3 foto's</option>
-          <option value="4">4 foto's</option>
-          <option value="5">5 foto's</option>
-          <option value="6">6 foto's</option>
+          <option value="1">1 photo</option>
+          <option value="2">2 photos</option>
+          <option value="3">3 photos</option>
+          <option value="4">4 photos</option>
+          <option value="5">5 photos</option>
+          <option value="6">6 photos</option>
         </select>
       </div>
       <div id="templateFilterWrap" class="hidden">
         <label for="templateFilter">Filter</label>
         <select id="templateFilter">
-          <option value="all">Alle templates</option>
+          <option value="all">All templates</option>
           <option value="full-bleed">Full bleed</option>
         </select>
       </div>
@@ -257,13 +257,13 @@
           <circle cx="8.5" cy="8.5" r="1.5"/>
           <polyline points="21 15 16 10 5 21"/>
         </svg>
-        <div class="library-empty-text">Klik op "Foto's Toevoegen"</div>
+        <div class="library-empty-text">Click "Add Photos"</div>
       </div>
     </div>
   </div>
 
   <div id="templateView" class="library-view">
-    <div id="templateLibrary"><div id="templateEmpty">Kies eerst het aantal foto\'s voor deze spread en selecteer daarna een template.</div></div>
+    <div id="templateLibrary"><div id="templateEmpty">First choose the number of photos for this spread, then select a template.</div></div>
   </div>
 </div>
 
