@@ -1199,6 +1199,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 }
 
 #librarySortWrap,
+#libraryPageFilterWrap,
 #templateFilterWrap,
 #libraryZoomWrap{
   display:flex;
@@ -1207,6 +1208,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 }
 
 #librarySortWrap label,
+#libraryPageFilterWrap label,
 #templateFilterWrap label,
 #libraryZoomWrap label{
   font-size:11px;

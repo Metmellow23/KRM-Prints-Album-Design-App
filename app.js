@@ -29,6 +29,8 @@ const templateView = document.getElementById("templateView");
 const templateLibrary = document.getElementById("templateLibrary");
 const templateFilter = document.getElementById("templateFilter");
 const librarySortWrap = document.getElementById("librarySortWrap");
+const libraryPageFilter = document.getElementById("libraryPageFilter");
+const libraryPageFilterWrap = document.getElementById("libraryPageFilterWrap");
 const templateFilterWrap = document.getElementById("templateFilterWrap");
 const templateCountWrap = document.getElementById("templateCountWrap");
 const templateCount = document.getElementById("templateCount");
@@ -349,11 +351,15 @@ let activeSpread = null;
 let selectedFrameId = null;
 let project = createEmptyProject(formatSelect.value);
 let librarySortMode = "name-asc";
+// Onderste galerij-filter: "all" = alle foto's, of "0","1",... = alleen de
+// foto's die op die (0-gebaseerde) spread/pagina staan. Dynamisch gevuld op
+// basis van het door de wizard opgebouwde album.
+let libraryPageFilterValue = "all";
 let introMode = "startup";
 let assetMode = "photos";
 let templateFilterMode = "all";
 let templatePhotoCount = 1;
-let templateGapPx = 5;
+let templateGapPx = 0;
 let libraryThumbSize = 60;
 let spreadViews = [];
 
@@ -441,6 +447,7 @@ function setAssetMode(mode){
   templateView.classList.toggle("active", showTemplates);
   libraryTitle.textContent = showTemplates ? "Templates" : "Photo library";
   librarySortWrap.classList.toggle("hidden", showTemplates);
+  if(libraryPageFilterWrap) libraryPageFilterWrap.classList.toggle("hidden", showTemplates);
   templateFilterWrap.classList.toggle("hidden", !showTemplates);
   templateCountWrap.classList.toggle("hidden", !showTemplates);
 
@@ -1029,6 +1036,9 @@ function updateSpreadNumbers(){
     }
   });
   spreadCount.innerText = project.spreads.length;
+  // Houd het "Show"-paginafilter in de onderste galerij synchroon met het
+  // huidige aantal pagina's (elke toevoeging/verwijdering loopt hier langs).
+  updateLibraryPageFilterOptions();
 }
 
 function setActiveSpread(spreadModel){
@@ -1105,7 +1115,7 @@ function buildSpreadView(spreadModel){
 
   const padLabel = document.createElement("span");
   padLabel.className = "spreadPadLabel";
-  padLabel.textContent = "Margin";
+  padLabel.textContent = "Border";
   padLabel.style.marginLeft = "12px";
   label.appendChild(padLabel);
 
@@ -1253,6 +1263,86 @@ function clearWorkspace(){
   activeSpread = null;
 }
 
+// ============================================================================
+//  UNDO / REDO — geschiedenis van frame-aanpassingen (verplaatsen/resizen/pannen)
+// ----------------------------------------------------------------------------
+//  We bewaren diepe kloons van project.spreads. Frames zijn platte data (zie
+//  normalizeLoadedProject), dus JSON-klonen is veilig. Na undo/redo bouwen we de
+//  hele workspace opnieuw op vanuit het model (zelfde pad als loadProject).
+// ============================================================================
+let undoStack = [];
+let redoStack = [];
+let historyPresent = null; // diepe snapshot van de laatst vastgelegde staat
+
+function cloneSpreads(){
+  return JSON.parse(JSON.stringify(project.spreads || []));
+}
+
+// Herbouwt alle spread-views + frames vanuit het huidige project.spreads-model.
+function rebuildWorkspaceFromModel(){
+  clearWorkspace();
+  project.spreads.forEach(spread => {
+    const view = buildSpreadView(spread);
+    applyFormatToCanvas(view.canvas);
+  });
+  project.spreads.forEach(spread => {
+    spread.frames.forEach(frame => renderFrame(spread, frame));
+  });
+  updateSpreadNumbers();
+  setActiveSpread(project.spreads[0] || null);
+  renderLibrary();
+}
+
+// Reset de geschiedenis rond een nieuw/opgebouwd album: de huidige staat wordt
+// het startpunt (present), stacks leeg.
+function initHistory(){
+  undoStack = [];
+  redoStack = [];
+  historyPresent = cloneSpreads();
+}
+
+// Legt een committed frame-wijziging vast. Slaat no-ops over (klik zonder echte
+// verandering) door de nieuwe staat met de present te vergelijken.
+function commitHistory(){
+  const current = cloneSpreads();
+  if(historyPresent === null){ historyPresent = current; return; }
+  if(JSON.stringify(historyPresent) === JSON.stringify(current)) return;
+  undoStack.push(historyPresent);
+  if(undoStack.length > 60) undoStack.shift();
+  redoStack = [];
+  historyPresent = current;
+}
+
+function restoreSpreadsSnapshot(snapshot){
+  project.spreads = JSON.parse(JSON.stringify(snapshot || []));
+  rebuildWorkspaceFromModel();
+}
+
+function undoFrameChange(){
+  if(!undoStack.length) return;
+  redoStack.push(historyPresent);
+  historyPresent = undoStack.pop();
+  restoreSpreadsSnapshot(historyPresent);
+}
+
+function redoFrameChange(){
+  if(!redoStack.length) return;
+  undoStack.push(historyPresent);
+  historyPresent = redoStack.pop();
+  restoreSpreadsSnapshot(historyPresent);
+}
+
+// Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z = redo. Niet kapen tijdens tekstinvoer.
+document.addEventListener('keydown', (e) => {
+  if((e.key || '').toLowerCase() !== 'z') return;
+  if(!(e.ctrlKey || e.metaKey)) return;
+  const el = document.activeElement;
+  if(el && ['INPUT','TEXTAREA','SELECT'].includes(el.tagName)) return;
+  e.preventDefault();
+  if(e.shiftKey) redoFrameChange();
+  else undoFrameChange();
+});
+
 projectNameInput.addEventListener('keydown', (e) => {
   if(e.key === 'Enter'){
     applyIntroSettings();
@@ -1267,6 +1357,13 @@ librarySort.addEventListener('change', (e) => {
   librarySortMode = e.target.value;
   renderLibrary();
 });
+
+if(libraryPageFilter){
+  libraryPageFilter.addEventListener('change', (e) => {
+    libraryPageFilterValue = e.target.value;
+    renderLibrary();
+  });
+}
 
 libraryTabs.forEach(tab => {
   tab.addEventListener('click', () => setAssetMode(tab.dataset.mode));
@@ -1414,14 +1511,57 @@ function restoreEmptyLibraryState(){
   `;
 }
 
+// Herbouwt de opties van de "Show"-dropdown op basis van het huidige album:
+// "All Photos" + één optie per pagina (Page 1, Page 2, ...). Bewaart de huidige
+// keuze indien die nog geldig is; anders terug naar "all".
+function updateLibraryPageFilterOptions(){
+  if(!libraryPageFilter) return;
+  const pageCount = project.spreads ? project.spreads.length : 0;
+
+  // Selectie ongeldig geworden (pagina verwijderd)? Val terug op alle foto's.
+  if(libraryPageFilterValue !== "all"){
+    const idx = Number(libraryPageFilterValue);
+    if(!Number.isInteger(idx) || idx < 0 || idx >= pageCount){
+      libraryPageFilterValue = "all";
+    }
+  }
+
+  let html = '<option value="all">All Photos</option>';
+  for(let i = 0; i < pageCount; i++){
+    html += `<option value="${i}">Page ${i + 1}</option>`;
+  }
+  libraryPageFilter.innerHTML = html;
+  libraryPageFilter.value = libraryPageFilterValue;
+}
+
+// Past het paginafilter toe: bij "all" alle foto's, anders alleen de foto's die
+// op de gekozen spread zijn geplaatst (in plaatsingsvolgorde, zonder duplicaten).
+function getFilteredLibraryPhotos(){
+  if(libraryPageFilterValue === "all") return project.library;
+  const idx = Number(libraryPageFilterValue);
+  const spread = project.spreads ? project.spreads[idx] : null;
+  if(!spread) return project.library;
+  const ids = new Set(spread.frames.map(frame => frame.photoId).filter(Boolean));
+  return project.library.filter(photo => ids.has(photo.id));
+}
+
 function renderLibrary(){
   if(project.library.length === 0){
     restoreEmptyLibraryState();
     return;
   }
 
+  const photos = getFilteredLibraryPhotos();
   library.innerHTML = "";
-  sortLibraryItems(project.library).forEach(photo => {
+  if(!photos.length){
+    const empty = document.createElement("div");
+    empty.className = "library-empty-text";
+    empty.style.padding = "24px";
+    empty.textContent = "No photos on this page.";
+    library.appendChild(empty);
+    return;
+  }
+  sortLibraryItems(photos).forEach(photo => {
     const usagePages = getSpreadUsage(photo.id);
     const usageCount = getPhotoUsageCount(photo.id);
     const wrapper = document.createElement("div");
@@ -1667,6 +1807,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       document.removeEventListener('mouseup', stop);
       // Verplaatsing (geen pan): leg de nieuwe positie vast in het slot.
       if(!frameData.movePhotoMode) writeBackResizedSlot(spreadModel, frameData);
+      commitHistory();
     }
 
     document.addEventListener('mousemove', move);
@@ -1732,6 +1873,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
       // Ruimte-slider hierna van deze handmatige maat uitgaat.
       writeBackResizedSlot(spreadModel, frameData);
+      commitHistory();
     }
 
     document.addEventListener('mousemove', resize);
@@ -1818,6 +1960,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
         // Ruimte-slider hierna van deze handmatige maat uitgaat.
         writeBackResizedSlot(spreadModel, frameData);
+        commitHistory();
       }
 
       document.addEventListener('mousemove', resize);
@@ -1913,6 +2056,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         // Resize klaar: leg de nieuwe maat/positie vast in het slot zodat de
         // Ruimte-slider hierna van deze handmatige maat uitgaat.
         writeBackResizedSlot(spreadModel, frameData);
+        commitHistory();
       }
 
       document.addEventListener('mousemove', resize);
@@ -2364,6 +2508,8 @@ function loadProject(data){
   updateSpreadNumbers();
   setActiveSpread(project.spreads[0] || null);
   renderLibrary();
+  // Verse geschiedenis-basis voor het geladen project.
+  initHistory();
 }
 
 function getImageFormatFromSrc(src){
@@ -2631,10 +2777,10 @@ function goToWizardStep(step){
   });
   if(step === 2) renderWizardStep2();
   if(step === 3){
-    // Nieuwe live-preview flow: geen grijs samenvattingspaneel meer. Stap 3
-    // bouwt direct het album op en sluit de overlay, zodat de gebruiker meteen
-    // het echte #workspace met alle foto's ziet. finishWizard toont daarna de
-    // amber "Sihirbaza Geri Dön"-knop om terug te keren naar stap 2.
+    // Stap 3 bouwt direct het album op en sluit de overlay. Na de generatie is
+    // teruggaan naar de wizard niet meer mogelijk: de "Back to Wizard"-knop
+    // wordt hier expliciet verborgen zodat de opbouw definitief is.
+    if(wizardReturnBtn) wizardReturnBtn.classList.add("hidden");
     finishWizard();
   }
 }
@@ -2969,6 +3115,8 @@ function buildAlbumFromWizard(pages){
     requestAnimationFrame(() => scrollToSpread(firstSpread, "auto"));
   }
   renderLibrary();
+  // Verse geschiedenis-basis voor het net opgebouwde album.
+  initHistory();
 }
 
 function finishWizard(){
@@ -3011,9 +3159,9 @@ function finishWizard(){
     closeIntroOverlay();
     console.log("WIZARD: Intro overlay closed.");
 
-    // Live-preview modus: toon de amber terugkeer-knop in de topbar zodat de
-    // gebruiker het gegenereerde album kan bekijken én terug kan naar stap 2.
-    if(wizardReturnBtn) wizardReturnBtn.classList.remove("hidden");
+    // Zodra het album is gegenereerd mag de gebruiker NIET meer terug naar de
+    // wizard: de amber "Back to Wizard"-knop blijft volledig verborgen.
+    if(wizardReturnBtn) wizardReturnBtn.classList.add("hidden");
   } catch (err) {
     console.error("CRITICAL WIZARD CRASH DETECTED IN BROWSER:", err);
     alert("An error occurred while the wizard was building the album: " + (err && err.message ? err.message : err));
