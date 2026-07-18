@@ -2590,6 +2590,7 @@ const wizardLibraryEl = document.getElementById("wizardLibrary");
 const wizardLibCount = document.getElementById("wizardLibCount");
 const wizardZoomInBtn = document.getElementById("wizardZoomIn");
 const wizardZoomOutBtn = document.getElementById("wizardZoomOut");
+const wizardSortSelect = document.getElementById("wizardSort");
 const wizardPagesEl = document.getElementById("wizardPages");
 const wizardSummary = document.getElementById("wizardSummary");
 const wizardSummaryGrid = document.getElementById("wizardSummaryGrid");
@@ -2600,6 +2601,10 @@ const wizardPanels = Array.from(document.querySelectorAll(".wizard-panel"));
 const wizardReturnBtn = document.getElementById("wizardReturnBtn");
 
 let wizardStep = 1;
+// Sorteervolgorde van de stap-2 bibliotheek: 'alpha' (A→Z op bestandsnaam) of
+// 'date' (opnamedatum oud→nieuw). Losgekoppeld van de hoofd-bibliotheek
+// (librarySortMode) zodat beide onafhankelijk sorteren.
+let wizardSortMode = "alpha";
 // True zolang we vanuit de live-preview terugkeren naar de wizard: dan mag
 // openIntroOverlay de reeds ingedeelde pagina's NIET resetten.
 let wizardPreserveOnOpen = false;
@@ -2607,8 +2612,12 @@ let wizardPreserveOnOpen = false;
 // foto belandt. Wordt bij elke wizard-opening ververst via resetWizardState().
 const wizardState = { pages: [], activePage: 0 };
 
+// Standaard start de wizard met 5 lege pagina-pakketten (i.p.v. 1), zodat de
+// gebruiker meteen meerdere spreads kan vullen zonder eerst handmatig te moeten
+// toevoegen. Elk pakket is een los object zodat ze onafhankelijk gevuld worden.
+const WIZARD_DEFAULT_PAGES = 5;
 function resetWizardState(){
-  wizardState.pages = [{ photoIds: [] }];
+  wizardState.pages = Array.from({ length: WIZARD_DEFAULT_PAGES }, () => ({ photoIds: [] }));
   wizardState.activePage = 0;
 }
 
@@ -2677,8 +2686,35 @@ function removeWizardPage(index){
   renderWizardStep2();
 }
 
+// Sorteert een kopie van de bibliotheek voor stap 2 volgens wizardSortMode.
+// 'alpha' = bestandsnaam A→Z, 'date' = opnamedatum oud→nieuw (met naam als
+// tie-breaker). Muteert de originele array niet.
+function sortWizardPhotos(items){
+  const sorted = [...items];
+  const getName = it => (it.name || "").toLocaleLowerCase("en");
+  const getCapture = it => Number(it.captureDate || it.createdAt || 0);
+  if(wizardSortMode === "date"){
+    sorted.sort((a, b) => {
+      const diff = getCapture(a) - getCapture(b);
+      if(diff !== 0) return diff;
+      return getName(a).localeCompare(getName(b), "en");
+    });
+  } else {
+    sorted.sort((a, b) => getName(a).localeCompare(getName(b), "en"));
+  }
+  return sorted;
+}
+
 function renderWizardStep2(){
-  if(wizardLibCount) wizardLibCount.textContent = project.library.length;
+  // Teller toont "X / Y": X = unieke foto's die in minstens één pagina zitten
+  // (en nog in de bibliotheek bestaan), Y = totaal geladen foto's. Wordt via
+  // renderWizardStep2 bij elke toevoeging/verwijdering opnieuw berekend.
+  if(wizardLibCount){
+    const assigned = new Set();
+    wizardState.pages.forEach(page => page.photoIds.forEach(id => assigned.add(id)));
+    const usedCount = [...assigned].filter(id => getPhotoById(id)).length;
+    wizardLibCount.textContent = `${usedCount} / ${project.library.length}`;
+  }
 
   // Linkerkolom: bibliotheek-thumbnails (klik = toevoegen aan actieve pagina).
   if(wizardLibraryEl){
@@ -2686,7 +2722,7 @@ function renderWizardStep2(){
     if(!project.library.length){
       wizardLibraryEl.innerHTML = '<div class="wizard-empty">No photos loaded yet. Go back to step 1.</div>';
     } else {
-      sortLibraryItems(project.library).forEach(photo => {
+      sortWizardPhotos(project.library).forEach(photo => {
         const cell = document.createElement("button");
         cell.type = "button";
         cell.className = "wizard-thumb";
@@ -2698,6 +2734,13 @@ function renderWizardStep2(){
         img.src = photo.src;
         img.alt = photo.name;
         cell.appendChild(img);
+
+        // Bestandsnaam onder de foto, zodat de gebruiker zijn bestanden herkent
+        // tijdens het indelen. Ellipsis bij te lange namen (CSS).
+        const nameTag = document.createElement("div");
+        nameTag.className = "wizard-thumb-name";
+        nameTag.textContent = photo.name;
+        cell.appendChild(nameTag);
 
         // Duidelijke "Sayfa N"-badges rechtsboven op de fotokaart.
         if(pages.length){
@@ -3028,6 +3071,12 @@ if(wizardZoomInBtn) wizardZoomInBtn.addEventListener("click", () => {
 if(wizardZoomOutBtn) wizardZoomOutBtn.addEventListener("click", () => {
   wizardZoomLevel = Math.max(0, wizardZoomLevel - 1);
   applyWizardZoom();
+});
+
+// Sorteer-dropdown stap 2: herrender de bibliotheek in de gekozen volgorde.
+if(wizardSortSelect) wizardSortSelect.addEventListener("change", (e) => {
+  wizardSortMode = e.target.value;
+  renderWizardStep2();
 });
 
 // Terug-knoppen binnen de wizard.

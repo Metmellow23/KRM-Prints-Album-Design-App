@@ -1663,6 +1663,25 @@ body.exporting .crop-height-handle-top{
   color:var(--text);
   font-size:11px;
 }
+/* Stap-2 kop-labels (Sort / Zoom): kleine, niet-hoofdletter labels. */
+.wizard-sort-label,
+.wizard-zoom-label{
+  font-size:11px;
+  font-weight:600;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--muted-2);
+}
+.wizard-sort-select{
+  font-size:11px;
+  font-weight:600;
+  color:var(--text);
+  background:var(--panel-3);
+  border:1px solid var(--border-2);
+  border-radius:8px;
+  padding:3px 8px;
+  cursor:pointer;
+}
 
 /* Bibliotheek-thumbnails links — grote, nette galerie zonder overlap.
    auto-rows + align-content:start houdt de rijen strak; geen cel schuift over
@@ -1697,13 +1716,35 @@ body.exporting .crop-height-handle-top{
   cursor:pointer;
   background:var(--panel-3);
   transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  /* Kolom-layout: foto krijgt de resterende hoogte, bestandsnaam een vaste
+     strook onderaan — zo blijft de kaart binnen de vaste grid-rijhoogte. */
+  display:flex;
+  flex-direction:column;
 }
 .wizard-thumb img{
   width:100%;
+  flex:1 1 auto;
+  min-height:0;
   height:100%;
   object-fit:contain;
   background:var(--panel-3);
   display:block;
+}
+/* Bestandsnaam-strook onder elke foto in stap 2. */
+.wizard-thumb-name{
+  flex:0 0 auto;
+  width:100%;
+  padding:3px 7px;
+  font-size:10px;
+  line-height:1.4;
+  font-weight:600;
+  color:var(--muted-2);
+  background:var(--panel-2);
+  border-top:1px solid var(--border-2);
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .wizard-thumb:hover{
   border-color:var(--primary);
@@ -1814,25 +1855,37 @@ body.exporting .crop-height-handle-top{
   font-size:11px;
   color:#f59e0b;
 }
-/* Kibar, kompakt "Sayfa Ekle"-knop: geen grote gevulde balk meer. */
-.wizard-add-page{
-  margin-top:8px;
+/* Grote, opvallende volle-breedte "Add Page"-knop: solide blauw, witte tekst. */
+/* Selector bewust hoog-specifiek (.intro-card.wizard-mode ...) zodat hij de
+   thema-regel `body.light-theme .btn` (die anders een witte gradient geeft)
+   in BEIDE thema's verslaat. Zo blijft de knop altijd solide blauw. */
+.intro-card.wizard-mode .wizard-add-page{
+  margin-top:12px;
   flex:0 0 auto;
-  align-self:flex-start;
+  align-self:stretch;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
   min-width:0;
   height:auto;
-  padding:6px 14px;
-  font-size:12px;
-  font-weight:600;
-  background:transparent;
-  border:1px dashed var(--border);
-  color:var(--muted);
+  padding:14px 20px;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:0.3px;
+  color:#fff;
+  background:var(--primary);
+  border:1px solid var(--primary);
+  border-radius:12px;
+  box-shadow:0 4px 14px rgba(59,130,246,0.35);
+  transition:background 0.15s, box-shadow 0.15s, transform 0.15s;
 }
-.wizard-add-page:hover{
-  border-color:var(--primary);
-  color:var(--text);
-  background:var(--panel-3);
-  transform:none;
+.intro-card.wizard-mode .wizard-add-page:hover{
+  background:var(--primary-2);
+  border-color:var(--primary-2);
+  color:#fff;
+  box-shadow:0 6px 20px rgba(59,130,246,0.45);
+  transform:translateY(-1px);
 }
 
 /* Stap 3: samenvatting */
