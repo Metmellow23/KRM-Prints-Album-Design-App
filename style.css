@@ -850,12 +850,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   position:absolute;
   border:none;
   overflow:hidden;
-  /* Transparant, niet grijs: bij een contain-pasvorm is de foto kleiner dan het
-     kader, waardoor het kaderoppervlak zichtbaar wordt. De PDF-export vult die
-     ruimte met de achtergrondkleur van de spread, dus het scherm moet de spread
-     laten doorschijnen — anders staat er grijs op het scherm en spreadkleur in
-     de PDF. Lege slots houden hun eigen grijs via .placeholder. */
-  background:transparent;
+  background:#e5e5e5;
   box-shadow:none;
   cursor:move;
 }
