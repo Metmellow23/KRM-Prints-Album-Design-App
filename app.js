@@ -794,7 +794,15 @@ function fillFrameWithPhoto(frameData, photoId, callback = null){
   tempImg.src = photo.src;
 }
 
-function applyTemplateToActiveSpread(templateId){
+// options.autoFrame:
+//   false (standaard) -> RASTER: de frames nemen de volledige slotmaat en de
+//     foto's vullen ze met cover. Dit is wat je bij het aanklikken van een
+//     sjabloon verwacht: het vlak wordt gevuld precies zoals in de preview.
+//   true -> de kaders krimpen naar de beeldverhouding van hun foto (auto-framing).
+//     De wizard gebruikt dit, zodat een gegenereerd album de echte verhoudingen
+//     toont in plaats van alles bij te snijden.
+function applyTemplateToActiveSpread(templateId, options = {}){
+  const useAutoFrame = options.autoFrame === true;
   if(!activeSpread) return;
   const template = templateCatalog.find(item => item.id === templateId);
   if(!template) return;
@@ -818,7 +826,16 @@ function applyTemplateToActiveSpread(templateId){
   const spreadGap = templateGapPx;
 
   const spreadPadding = typeof activeSpread.padding === "number" ? activeSpread.padding : 0;
-  activeSpread.frames = template.slots.map((slot, index) => createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap, spreadPadding));
+  // Sjabloonframes nemen de VOLLEDIGE slotafmetingen over en krijgen expliciet
+  // autoFramed = false. Een sjabloon is een raster: de tegels moeten het vlak
+  // vullen zoals in de preview. Die vlag zet meteen alle andere paden op cover
+  // (fillFrameWithPhoto, relayoutSpreadWithGap en swapFramePhotos kijken er
+  // allemaal naar), zodat het raster ook na sliders en wissels intact blijft.
+  activeSpread.frames = template.slots.map((slot, index) => {
+    const frame = createTemplateFrame(slot, spreadWidth, spreadHeight, existingPhotoIds[index] || null, spreadGap, spreadPadding);
+    frame.autoFramed = useAutoFrame;
+    return frame;
+  });
 
   // Keep this spread's Spacing slider in sync with the gap in use.
   const gapView = getSpreadView(activeSpread);
@@ -830,15 +847,32 @@ function applyTemplateToActiveSpread(templateId){
   existingPhotoIds.forEach((photoId, index) => {
     const frame = activeSpread.frames[index];
     if(frame && photoId){
-      // SYNCHRONOUS auto-framing from the already sealed natural sizes
+      // SYNCHRONOUS cover calculation from the already sealed natural sizes
       // (importPhotoFiles seals naturalWidth/Height). This makes the FIRST render
       // correct right away; no more async 'squeeze' frame while fillFrameWithPhoto's
       // Image().onload has yet to fire.
       //
-      // The frame itself takes the photo's aspect ratio (shrinking inside its
-      // slot) so the photo fills it exactly — no crop — and the freed space
-      // becomes clean white spacing on the spread.
-      autoFrameToPhoto(frame, photoId);
+      // Sjabloon aanklikken = raster: het kader houdt de volle slotmaat en de foto
+      // vult het met cover. De wizard vraagt wel om auto-framing (useAutoFrame),
+      // zodat een gegenereerd album de echte beeldverhoudingen laat zien.
+      if(useAutoFrame){
+        autoFrameToPhoto(frame, photoId);
+      } else {
+        const photo = getPhotoById(photoId);
+        if(photo && photo.naturalWidth && photo.naturalHeight){
+          const ratio = photo.naturalWidth / photo.naturalHeight;
+          if((frame.width / frame.height) > ratio){
+            frame.imageWidth = frame.width;
+            frame.imageHeight = frame.width / ratio;
+          } else {
+            frame.imageHeight = frame.height;
+            frame.imageWidth = frame.height * ratio;
+          }
+          frame.imageLeft = (frame.width - frame.imageWidth) / 2;
+          frame.imageTop = (frame.height - frame.imageHeight) / 2;
+          ensureImageCoversFrame(frame);
+        }
+      }
       // Still called: seals natural sizes for photos that do not have them (yet)
       // and keeps library/preview in sync. For already sealed photos, onload
       // recalculates exactly the same values — so it is invisible.
@@ -3386,7 +3420,9 @@ function buildAlbumFromWizard(pages){
     if(photoIds.length > 0){
       const template = findWizardTemplate(photoIds.length);
       if(template){
-        applyTemplateToActiveSpread(template.id);
+        // De wizard bouwt een album op uit de echte foto's: kaders volgen hier de
+        // beeldverhouding (auto-framing) i.p.v. alles in een raster bij te snijden.
+        applyTemplateToActiveSpread(template.id, { autoFrame: true });
       }
     } else {
       // Sayfa tamamen boşsa şablon motorunu pas geç; temiz, serbest bir spread bırak.
