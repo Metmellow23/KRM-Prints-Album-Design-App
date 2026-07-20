@@ -648,21 +648,27 @@ function relayoutSpreadWithGap(spreadModel){
       const photo = getPhotoById(frame.photoId);
       if(photo && photo.naturalWidth && photo.naturalHeight){
         const ratio = photo.naturalWidth / photo.naturalHeight;
-        const nextW = frame.width;
-        const nextH = frame.height;
-        if((nextW / nextH) > ratio){
-          frame.imageWidth = nextW;
-          frame.imageHeight = nextW / ratio;
+        if(isContainFit(frame)){
+          // Uncropped frame: re-contain into the new box. Sliders must never
+          // silently turn a full, uncropped photo into a cropped one.
+          applyContainFit(frame, ratio);
         } else {
-          frame.imageHeight = nextH;
-          frame.imageWidth = nextH * ratio;
+          const nextW = frame.width;
+          const nextH = frame.height;
+          if((nextW / nextH) > ratio){
+            frame.imageWidth = nextW;
+            frame.imageHeight = nextW / ratio;
+          } else {
+            frame.imageHeight = nextH;
+            frame.imageWidth = nextH * ratio;
+          }
+          // Re-apply the focal point captured above instead of hard-centering, so a
+          // manual pan/crop survives every Spacing/Border slider move. clamp keeps
+          // the image covering the frame (no blank edges) at the new bounds.
+          frame.imageLeft = (nextW / 2) - (curPctX * frame.imageWidth);
+          frame.imageTop = (nextH / 2) - (curPctY * frame.imageHeight);
+          clampImagePosition(frame);
         }
-        // Re-apply the focal point captured above instead of hard-centering, so a
-        // manual pan/crop survives every Spacing/Border slider move. clamp keeps
-        // the image covering the frame (no blank edges) at the new bounds.
-        frame.imageLeft = (nextW / 2) - (curPctX * frame.imageWidth);
-        frame.imageTop = (nextH / 2) - (curPctY * frame.imageHeight);
-        clampImagePosition(frame);
       }
     }
 
@@ -745,15 +751,24 @@ function fillFrameWithPhoto(frameData, photoId, callback = null){
     frameData.placeholder = false;
 
     const ratio = tempImg.naturalWidth / tempImg.naturalHeight;
-    if((frameData.width / frameData.height) > ratio){
-      frameData.imageWidth = frameData.width;
-      frameData.imageHeight = frameData.width / ratio;
+    // Een foto die in een TEMPLATE-slot terechtkomt, komt er onbijgesneden in:
+    // volledige foto zichtbaar op ware beeldverhouding. Vrij geplaatste frames
+    // (buiten een sjabloon) houden het oude cover-gedrag. Een frame dat al op
+    // contain staat, blijft dat uiteraard.
+    const wantsContain = isContainFit(frameData) || ("templateStyle" in frameData);
+    if(wantsContain){
+      applyContainFit(frameData, ratio);
     } else {
-      frameData.imageHeight = frameData.height;
-      frameData.imageWidth = frameData.height * ratio;
+      if((frameData.width / frameData.height) > ratio){
+        frameData.imageWidth = frameData.width;
+        frameData.imageHeight = frameData.width / ratio;
+      } else {
+        frameData.imageHeight = frameData.height;
+        frameData.imageWidth = frameData.height * ratio;
+      }
+      frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
+      frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
     }
-    frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
-    frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
 
     if(typeof callback === "function") callback(frameData);
     rerenderSpread(activeSpread || project.spreads.find(spread => spread.frames.some(frame => frame.id === frameData.id)));
@@ -798,23 +813,19 @@ function applyTemplateToActiveSpread(templateId){
   existingPhotoIds.forEach((photoId, index) => {
     const frame = activeSpread.frames[index];
     if(frame && photoId){
-      // SYNCHRONOUS cover calculation from the already sealed natural sizes
+      // SYNCHRONOUS contain calculation from the already sealed natural sizes
       // (importPhotoFiles seals naturalWidth/Height). This makes the FIRST render
       // correct right away; no more async 'squeeze' frame while fillFrameWithPhoto's
-      // Image().onload has yet to fire. Same math as relayoutSpreadWithGap.
+      // Image().onload has yet to fire.
+      //
+      // The initial layout uses CONTAIN, not cover: the whole photo stays visible
+      // inside its slot at its true aspect ratio, so nothing is cropped away
+      // before the photographer has even looked at it and portrait/landscape/
+      // square is obvious at a glance. Panning or zooming a frame converts it to
+      // cover (see clearContainFit) — that is a deliberate crop by the user.
       const photo = getPhotoById(photoId);
       if(photo && photo.naturalWidth && photo.naturalHeight){
-        const ratio = photo.naturalWidth / photo.naturalHeight;
-        if((frame.width / frame.height) > ratio){
-          frame.imageWidth = frame.width;
-          frame.imageHeight = frame.width / ratio;
-        } else {
-          frame.imageHeight = frame.height;
-          frame.imageWidth = frame.height * ratio;
-        }
-        frame.imageLeft = (frame.width - frame.imageWidth) / 2;
-        frame.imageTop = (frame.height - frame.imageHeight) / 2;
-        ensureImageCoversFrame(frame);
+        applyContainFit(frame, photo.naturalWidth / photo.naturalHeight);
       }
       // Still called: seals natural sizes for photos that do not have them (yet)
       // and keeps library/preview in sync. For already sealed photos, onload
@@ -1677,13 +1688,52 @@ function getPhotoAspectRatio(photoId){
   return 1;
 }
 
+// Een frame staat in "contain"-modus zolang de gebruiker de foto niet bewust
+// zelf heeft bijgesneden (pannen/zoomen). Dan past de HELE foto in het kader,
+// ongebruikt kaderoppervlak blijft zichtbaar als achtergrond.
+function isContainFit(frameData){
+  return !!frameData && frameData.fitMode === "contain";
+}
+
+// Schaalt de foto zo groot mogelijk BINNEN het kader met behoud van de echte
+// beeldverhouding (contain): niets wordt weggesneden. Gecentreerd in het kader.
+function applyContainFit(frameData, ratio){
+  if(!ratio || !isFinite(ratio) || ratio <= 0) return false;
+  if((frameData.width / frameData.height) > ratio){
+    // Kader is breder dan de foto -> hoogte is de beperkende factor.
+    frameData.imageHeight = frameData.height;
+    frameData.imageWidth = frameData.height * ratio;
+  } else {
+    frameData.imageWidth = frameData.width;
+    frameData.imageHeight = frameData.width / ratio;
+  }
+  frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
+  frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
+  frameData.fitMode = "contain";
+  return true;
+}
+
+// De gebruiker gaat de foto bewust bijsnijden (pannen/zoomen): verlaat contain
+// en vul het kader weer volledig, zodat er tijdens het slepen geen gat ontstaat.
+function clearContainFit(frameData){
+  if(!isContainFit(frameData)) return;
+  frameData.fitMode = null;
+  ensureImageCoversFrame(frameData);
+}
+
 function clampImagePosition(frameData){
+  // Bij contain is de foto KLEINER dan het kader, dus imageLeft/Top zijn positief.
+  // De cover-clamp (min 0) zou die centrering platslaan naar 0 en de foto tegen
+  // de linkerbovenhoek duwen. Laat contain-frames dus met rust.
+  if(isContainFit(frameData)) return;
   frameData.imageLeft = Math.min(0, Math.max(frameData.width - frameData.imageWidth, frameData.imageLeft));
   frameData.imageTop = Math.min(0, Math.max(frameData.height - frameData.imageHeight, frameData.imageTop));
 }
 
 function ensureImageCoversFrame(frameData){
   if(!frameData.photoId) return;
+  // Contain is een bewuste keuze (geen initiële crop) — niet opblazen tot cover.
+  if(isContainFit(frameData)) return;
   const ratio = getPhotoAspectRatio(frameData.photoId);
   const minScale = Math.max(frameData.width / ratio, frameData.height);
   if(frameData.imageHeight < minScale){
@@ -1702,6 +1752,8 @@ function ensureImageCoversFrame(frameData){
 }
 
 function zoomFramePhoto(frameData, factor){
+  // Zoomen is een bewuste crop-actie -> verlaat contain.
+  clearContainFit(frameData);
   const ratio = getPhotoAspectRatio(frameData.photoId);
   const frameCenterX = frameData.width / 2;
   const frameCenterY = frameData.height / 2;
@@ -1797,6 +1849,10 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     e.stopPropagation();
     if(!frameData.photoId) return;
     frameData.movePhotoMode = !frameData.movePhotoMode;
+    // Pannen binnen een contain-frame heeft geen betekenis (de foto past al
+    // helemaal) en de pan-clamp zou hem naar de hoek duwen. Zodra de gebruiker
+    // de verplaatsmodus inschakelt, wordt het dus een echte crop.
+    if(frameData.movePhotoMode) clearContainFit(frameData);
     updateFrameElement(frameEl, frameData);
   });
 
@@ -1906,6 +1962,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
         frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
         clampImagePosition(frameData);
+        // Kaderformaat wijzigen is geen crop: een onbijgesneden foto blijft
+        // onbijgesneden en wordt opnieuw in het nieuwe kader gepast.
+        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
       } else {
         frameData.imageWidth = nextW;
         frameData.imageHeight = nextH;
@@ -1998,6 +2057,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
         frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
         clampImagePosition(frameData);
+        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
 
         updateFrameElement(frameEl, frameData);
       }
@@ -2089,6 +2149,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
           frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
           frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
           clampImagePosition(frameData);
+          if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
         } else {
           frameData.imageWidth = nextW;
           frameData.imageHeight = nextH;
@@ -2594,7 +2655,16 @@ function getFrameSourceCrop(frame, img){
     sx: Math.max(0, visibleLeft * scaleX),
     sy: Math.max(0, visibleTop * scaleY),
     sw: Math.min(naturalWidth, visibleWidth * scaleX),
-    sh: Math.min(naturalHeight, visibleHeight * scaleY)
+    sh: Math.min(naturalHeight, visibleHeight * scaleY),
+    // Doelrechthoek BINNEN het kader, in spread-eenheden: de doorsnede van de
+    // fotobox met het kader. Bij cover (imageLeft/Top <= 0) is dat exact het hele
+    // kader, dus identiek aan het oude gedrag. Bij contain is de foto kleiner dan
+    // het kader en moet hij op zijn eigen maat/verhouding worden geplaatst —
+    // anders wordt hij in de PDF naar het kader uitgerekt.
+    dx: Math.max(0, frame.imageLeft),
+    dy: Math.max(0, frame.imageTop),
+    dw: visibleWidth,
+    dh: visibleHeight
   };
 }
 
@@ -2614,10 +2684,15 @@ function inferPdfImageFormat(photo){
   return 'JPEG';
 }
 
-function getFrameTargetPixels(frame){
+// Rasterformaat van het zichtbare deel. Neemt de doelmaat (dw/dh) i.p.v. het
+// hele kader, zodat een contain-foto op zijn eigen beeldverhouding wordt
+// gerasterd en niet uitgerekt. Bij cover zijn dw/dh gelijk aan het kader.
+function getFrameTargetPixels(frame, dw, dh){
+  const w = typeof dw === "number" && dw > 0 ? dw : frame.width;
+  const h = typeof dh === "number" && dh > 0 ? dh : frame.height;
   return {
-    width: Math.max(1, Math.round(mmToPx(frame.width) * 1.05)),
-    height: Math.max(1, Math.round(mmToPx(frame.height) * 1.05))
+    width: Math.max(1, Math.round(mmToPx(w) * 1.05)),
+    height: Math.max(1, Math.round(mmToPx(h) * 1.05))
   };
 }
 
@@ -2631,7 +2706,7 @@ async function getOptimizedFrameAsset(frame, photo, imageCache, assetCache){
 
   const img = imageCache.get(photo.id);
   const crop = getFrameSourceCrop(frame, img);
-  const target = getFrameTargetPixels(frame);
+  const target = getFrameTargetPixels(frame, crop.dw, crop.dh);
   const canvas = document.createElement('canvas');
   canvas.width = target.width;
   canvas.height = target.height;
@@ -2647,8 +2722,12 @@ async function getOptimizedFrameAsset(frame, photo, imageCache, assetCache){
   const asset = {
     data: canvas.toDataURL(preferredFormat === 'PNG' ? 'image/png' : 'image/jpeg', 0.92),
     format: preferredFormat,
-    width: frame.width,
-    height: frame.height
+    // Plaatsing binnen het kader: bij cover het hele kader, bij contain de
+    // ingesloten fotobox op ware verhouding.
+    offsetX: crop.dx,
+    offsetY: crop.dy,
+    width: crop.dw,
+    height: crop.dh
   };
   assetCache.set(cacheKey, asset);
   return asset;
@@ -2752,7 +2831,16 @@ async function exportAllSpreadsPDF(){
         const photo = getPhotoById(frame.photoId);
         if(!photo?.src) continue;
         const asset = await getOptimizedFrameAsset(frame, photo, imageCache, assetCache);
-        pdf.addImage(asset.data, asset.format, frame.x, frame.y, frame.width, frame.height, undefined, 'MEDIUM');
+        pdf.addImage(
+          asset.data,
+          asset.format,
+          frame.x + (asset.offsetX || 0),
+          frame.y + (asset.offsetY || 0),
+          asset.width,
+          asset.height,
+          undefined,
+          'MEDIUM'
+        );
       }
     }
 
