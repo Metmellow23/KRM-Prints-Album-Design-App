@@ -1211,6 +1211,22 @@ function buildSpreadView(spreadModel){
     relayoutSpreadWithGap(spreadModel);
   });
 
+  // --- Swap-modus: foto's van deze spread onderling verwisselen door slepen ---
+  const swapBtn = document.createElement("button");
+  swapBtn.type = "button";
+  swapBtn.className = "spreadSwapBtn";
+  swapBtn.textContent = "Swap";
+  swapBtn.title = "Swap mode: drag a photo onto another photo to exchange them";
+  swapBtn.classList.toggle("active", !!spreadModel.swapMode);
+  label.appendChild(swapBtn);
+
+  swapBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    spreadModel.swapMode = !spreadModel.swapMode;
+    swapBtn.classList.toggle("active", !!spreadModel.swapMode);
+    canvas.classList.toggle("swap-mode", !!spreadModel.swapMode);
+  });
+
   wrapper.appendChild(label);
 
   colorInput.addEventListener("input", e => {
@@ -1224,6 +1240,7 @@ function buildSpreadView(spreadModel){
 
   const canvas = document.createElement("div");
   canvas.className = "canvas";
+  if(spreadModel.swapMode) canvas.classList.add("swap-mode");
   wrapper.appendChild(canvas);
 
   const cutline = document.createElement("div");
@@ -1237,9 +1254,125 @@ function buildSpreadView(spreadModel){
   wrapper.addEventListener("click", () => setActiveSpread(spreadModel));
   workspace.insertBefore(wrapper, addSpreadBtn);
 
-  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue, padSlider, padValue };
+  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue, padSlider, padValue, swapBtn };
   spreadViews.push(view);
   return view;
+}
+
+// ============================================================================
+//  SWAP MODE — foto's binnen één spread onderling verwisselen
+// ============================================================================
+
+// Zoekt het frame waar de cursor boven (of vlakbij) hangt, het sleepframe zelf
+// uitgezonderd. Werkt op de gerenderde rechthoeken, dus schaal/zoom-onafhankelijk.
+function findSwapTarget(spreadModel, clientX, clientY, sourceFrame){
+  const view = getSpreadView(spreadModel);
+  if(!view) return null;
+  const TOLERANCE = 10;
+  let best = null;
+  let bestDistance = Infinity;
+
+  spreadModel.frames.forEach(frame => {
+    if(frame === sourceFrame) return;
+    const el = view.canvas.querySelector(`[data-frame-id="${frame.id}"]`);
+    if(!el) return;
+    const rect = el.getBoundingClientRect();
+    const inside = clientX >= rect.left - TOLERANCE && clientX <= rect.right + TOLERANCE
+      && clientY >= rect.top - TOLERANCE && clientY <= rect.bottom + TOLERANCE;
+    if(!inside) return;
+    const dx = clientX - (rect.left + rect.width / 2);
+    const dy = clientY - (rect.top + rect.height / 2);
+    const distance = Math.hypot(dx, dy);
+    if(distance < bestDistance){
+      bestDistance = distance;
+      best = { frame, el };
+    }
+  });
+  return best;
+}
+
+// Verwisselt de FOTO (en zijn crop-/pasvormstaat) van twee frames. De kaders
+// zelf blijven op hun plek; alleen de inhoud wisselt.
+function swapFramePhotos(spreadModel, frameA, frameB){
+  if(!spreadModel || !frameA || !frameB || frameA === frameB) return false;
+
+  ["photoId", "autoFramed", "imageWidth", "imageHeight", "imageLeft", "imageTop", "movePhotoMode"]
+    .forEach(key => {
+      const temp = frameA[key];
+      frameA[key] = frameB[key];
+      frameB[key] = temp;
+    });
+  frameA.placeholder = !frameA.photoId;
+  frameB.placeholder = !frameB.photoId;
+
+  // Een auto-gekaderd frame heeft de verhouding van zijn OUDE foto; na de wissel
+  // klopt die niet meer. relayoutSpreadWithGap bouwt elk kader opnieuw op vanuit
+  // zijn slot en past de auto-pasvorm opnieuw toe, zodat beide kaders de vorm van
+  // hun NIEUWE foto aannemen (en er geen krimp op krimp ontstaat).
+  if(isAutoFramed(frameA) || isAutoFramed(frameB)){
+    relayoutSpreadWithGap(spreadModel);
+  }
+
+  rerenderSpread(spreadModel);
+  renderLibrary();
+  commitHistory();
+  return true;
+}
+
+// Sleepgebaar in swap-modus: een ghost volgt de cursor, het doelframe licht op,
+// en bij loslaten wisselen de foto's. De layoutcoördinaten blijven ongemoeid.
+function startSwapDrag(event, spreadModel, frameData, frameEl){
+  const photo = getPhotoById(frameData.photoId);
+  const sourceRect = frameEl.getBoundingClientRect();
+
+  const ghost = document.createElement("div");
+  ghost.className = "swap-ghost";
+  ghost.style.width = `${sourceRect.width}px`;
+  ghost.style.height = `${sourceRect.height}px`;
+  if(photo && photo.src){
+    const ghostImg = document.createElement("img");
+    ghostImg.src = photo.src;
+    ghost.appendChild(ghostImg);
+  }
+  document.body.appendChild(ghost);
+  frameEl.classList.add("swap-source");
+
+  let currentTarget = null;
+
+  function positionGhost(clientX, clientY){
+    ghost.style.left = `${clientX}px`;
+    ghost.style.top = `${clientY}px`;
+  }
+  positionGhost(event.clientX, event.clientY);
+
+  function move(ev){
+    ev.preventDefault();
+    positionGhost(ev.clientX, ev.clientY);
+
+    const hit = findSwapTarget(spreadModel, ev.clientX, ev.clientY, frameData);
+    const nextEl = hit ? hit.el : null;
+    if(nextEl !== (currentTarget ? currentTarget.el : null)){
+      if(currentTarget) currentTarget.el.classList.remove("swap-target");
+      if(nextEl) nextEl.classList.add("swap-target");
+      currentTarget = hit;
+    }
+  }
+
+  function stop(ev){
+    document.removeEventListener("mousemove", move);
+    document.removeEventListener("mouseup", stop);
+    ghost.remove();
+    frameEl.classList.remove("swap-source");
+    if(currentTarget) currentTarget.el.classList.remove("swap-target");
+
+    // Alleen wisselen als er echt op een ander frame is losgelaten; in lege
+    // ruimte laten we de layout volledig ongemoeid.
+    const drop = findSwapTarget(spreadModel, ev.clientX, ev.clientY, frameData);
+    if(drop) swapFramePhotos(spreadModel, frameData, drop.frame);
+  }
+
+  document.addEventListener("mousemove", move);
+  document.addEventListener("mouseup", stop);
 }
 
 function applyFormatToCanvas(canvas){
@@ -1916,6 +2049,13 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     e.preventDefault();
     e.stopPropagation();
     setActiveSpread(spreadModel);
+
+    // Swap-modus onderschept het slepen VOLLEDIG: geen layoutverplaatsing, geen
+    // writeBackResizedSlot. Alleen frames met een foto zijn sleepbaar.
+    if(spreadModel.swapMode && frameData.photoId){
+      startSwapDrag(e, spreadModel, frameData, frameEl);
+      return;
+    }
 
     const view = getSpreadView(spreadModel);
     const canvasRect = view.canvas.getBoundingClientRect();

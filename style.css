@@ -821,6 +821,76 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   text-align:left;
 }
 
+/* --- Swap-modus ---------------------------------------------------------- */
+.spreadSwapBtn{
+  margin-left:12px;
+  padding:3px 12px;
+  font-family:inherit;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.3px;
+  color:inherit;
+  background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.28);
+  border-radius:999px;
+  cursor:pointer;
+  transition:background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.spreadSwapBtn:hover{
+  background:rgba(255,255,255,0.24);
+  border-color:rgba(255,255,255,0.45);
+}
+/* Duidelijk AAN-signaal: de modus verandert wat slepen doet, dus dat mag opvallen.
+   De actieve balk is zelf al blauw, dus een blauwe knop zou juist WEGvallen —
+   omgekeerd (witte pil, donkere tekst) leest hier als enige echt als "aan". */
+.spreadSwapBtn.active{
+  background:#fff;
+  border-color:#fff;
+  color:#1d4ed8;
+  font-weight:800;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.35);
+}
+
+/* In swap-modus is elk frame een sleepbaar item. */
+.canvas.swap-mode .photo-frame{
+  cursor:grab;
+}
+.canvas.swap-mode .photo-frame:active{
+  cursor:grabbing;
+}
+
+/* Het frame dat wordt versleept, valt terug zodat de ghost leidend is. */
+.photo-frame.swap-source{
+  opacity:0.35;
+}
+
+/* Het frame waarop losgelaten kan worden. */
+.photo-frame.swap-target{
+  outline:3px solid var(--primary);
+  outline-offset:-3px;
+  box-shadow:0 0 0 4px rgba(59,130,246,0.35);
+}
+
+/* Ghost volgt de cursor; pointer-events uit, anders vangt hij zijn eigen hits. */
+.swap-ghost{
+  position:fixed;
+  z-index:9999;
+  pointer-events:none;
+  transform:translate(-50%, -50%);
+  border-radius:6px;
+  overflow:hidden;
+  opacity:0.8;
+  box-shadow:0 12px 32px rgba(0,0,0,0.45);
+  border:2px solid var(--primary);
+  background:#000;
+}
+.swap-ghost img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
 /* snijmarge */
 .cutline{
   position:absolute;
