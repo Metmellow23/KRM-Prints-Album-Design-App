@@ -650,8 +650,10 @@ function relayoutSpreadWithGap(spreadModel){
         const ratio = photo.naturalWidth / photo.naturalHeight;
         if(isContainFit(frame)){
           // Uncropped frame: re-contain into the new box. Sliders must never
-          // silently turn a full, uncropped photo into a cropped one.
-          applyContainFit(frame, ratio);
+          // silently turn a full, uncropped photo into a cropped one — and the
+          // captured anchor keeps a manually shifted contain-photo in place
+          // instead of snapping it back to dead centre.
+          applyContainFit(frame, ratio, curPctX, curPctY);
         } else {
           const nextW = frame.width;
           const nextH = frame.height;
@@ -1695,9 +1697,29 @@ function isContainFit(frameData){
   return !!frameData && frameData.fitMode === "contain";
 }
 
+// Houdt de foto binnen zinnige grenzen, ONGEACHT of hij groter of kleiner is dan
+// het kader:
+//  - cover  (foto groter):  bereik [width - imageWidth, 0]  -> geen witte randen
+//  - contain (foto kleiner): bereik [0, width - imageWidth]  -> foto blijft heel
+// Door min/max dynamisch te bepalen werkt één clamp voor beide gevallen; bij
+// cover is de uitkomst identiek aan de oude harde min(0, ...)-clamp.
+function clampImageWithinFrame(frameData){
+  const slackX = frameData.width - frameData.imageWidth;
+  const slackY = frameData.height - frameData.imageHeight;
+  const minLeft = Math.min(0, slackX);
+  const maxLeft = Math.max(0, slackX);
+  const minTop = Math.min(0, slackY);
+  const maxTop = Math.max(0, slackY);
+  frameData.imageLeft = Math.min(maxLeft, Math.max(minLeft, frameData.imageLeft));
+  frameData.imageTop = Math.min(maxTop, Math.max(minTop, frameData.imageTop));
+}
+
 // Schaalt de foto zo groot mogelijk BINNEN het kader met behoud van de echte
-// beeldverhouding (contain): niets wordt weggesneden. Gecentreerd in het kader.
-function applyContainFit(frameData, ratio){
+// beeldverhouding (contain): niets wordt weggesneden. Zonder anker wordt de foto
+// gecentreerd; met een anker (pctX/pctY) blijft de handmatige verschuiving van de
+// gebruiker behouden, zodat sliders een verplaatste contain-foto niet stiekem
+// terugcentreren.
+function applyContainFit(frameData, ratio, pctX, pctY){
   if(!ratio || !isFinite(ratio) || ratio <= 0) return false;
   if((frameData.width / frameData.height) > ratio){
     // Kader is breder dan de foto -> hoogte is de beperkende factor.
@@ -1707,9 +1729,15 @@ function applyContainFit(frameData, ratio){
     frameData.imageWidth = frameData.width;
     frameData.imageHeight = frameData.width / ratio;
   }
-  frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
-  frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
+  if(typeof pctX === "number" && typeof pctY === "number"){
+    frameData.imageLeft = (frameData.width / 2) - (pctX * frameData.imageWidth);
+    frameData.imageTop = (frameData.height / 2) - (pctY * frameData.imageHeight);
+  } else {
+    frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
+    frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
+  }
   frameData.fitMode = "contain";
+  clampImageWithinFrame(frameData);
   return true;
 }
 
@@ -1849,10 +1877,9 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
     e.stopPropagation();
     if(!frameData.photoId) return;
     frameData.movePhotoMode = !frameData.movePhotoMode;
-    // Pannen binnen een contain-frame heeft geen betekenis (de foto past al
-    // helemaal) en de pan-clamp zou hem naar de hoek duwen. Zodra de gebruiker
-    // de verplaatsmodus inschakelt, wordt het dus een echte crop.
-    if(frameData.movePhotoMode) clearContainFit(frameData);
+    // Verplaatsmodus laat de pasvorm met rust: een contain-foto blijft contain
+    // (volledige foto, ware verhouding) en schuift binnen het kader. De clamp in
+    // de move-handler werkt voor beide pasvormen.
     updateFrameElement(frameEl, frameData);
   });
 
@@ -1888,10 +1915,13 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
       const dy = (ev.clientY - startY) / visualScale;
 
       if(frameData.movePhotoMode){
-        const nextLeft = Math.min(0, Math.max(frameData.width - frameData.imageWidth, frameData.imageLeft + dx));
-        const nextTop = Math.min(0, Math.max(frameData.height - frameData.imageHeight, frameData.imageTop + dy));
-        frameData.imageLeft = nextLeft;
-        frameData.imageTop = nextTop;
+        // Dynamische grens i.p.v. een harde min(0, ...): werkt zowel voor een
+        // foto die GROTER is dan het kader (cover, negatieve offsets) als voor
+        // een contain-foto die KLEINER is (positieve offsets, schuift binnen het
+        // kader zonder uitgerekt of bijgesneden te worden).
+        frameData.imageLeft += dx;
+        frameData.imageTop += dy;
+        clampImageWithinFrame(frameData);
       } else {
         const [canvasW, canvasH] = formats[project.format];
         let nx = Math.max(0, Math.min(frameData.x + dx, canvasW - frameData.width));
@@ -1964,7 +1994,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         clampImagePosition(frameData);
         // Kaderformaat wijzigen is geen crop: een onbijgesneden foto blijft
         // onbijgesneden en wordt opnieuw in het nieuwe kader gepast.
-        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
+        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio, pctX, pctY);
       } else {
         frameData.imageWidth = nextW;
         frameData.imageHeight = nextH;
@@ -2057,7 +2087,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
         frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
         frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
         clampImagePosition(frameData);
-        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
+        if(isContainFit(frameData)) applyContainFit(frameData, imageRatio, pctX, pctY);
 
         updateFrameElement(frameEl, frameData);
       }
@@ -2149,7 +2179,7 @@ function attachFrameInteractions(frameEl, frameData, spreadModel){
           frameData.imageLeft = (nextW / 2) - (pctX * frameData.imageWidth);
           frameData.imageTop = (nextH / 2) - (pctY * frameData.imageHeight);
           clampImagePosition(frameData);
-          if(isContainFit(frameData)) applyContainFit(frameData, imageRatio);
+          if(isContainFit(frameData)) applyContainFit(frameData, imageRatio, pctX, pctY);
         } else {
           frameData.imageWidth = nextW;
           frameData.imageHeight = nextH;
