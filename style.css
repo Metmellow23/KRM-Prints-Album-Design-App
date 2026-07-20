@@ -822,33 +822,34 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 }
 
 /* --- Swap-modus ---------------------------------------------------------- */
-.spreadSwapBtn{
-  margin-left:12px;
-  padding:3px 12px;
+.spread-swap-btn{
+  background:var(--panel-2);
+  color:var(--muted);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:3px 10px;
   font-family:inherit;
   font-size:11px;
-  font-weight:700;
-  letter-spacing:0.3px;
-  color:inherit;
-  background:rgba(255,255,255,0.14);
-  border:1px solid rgba(255,255,255,0.28);
-  border-radius:999px;
+  font-weight:600;
   cursor:pointer;
-  transition:background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  margin-left:12px;
+  transition:all 0.15s ease;
 }
-.spreadSwapBtn:hover{
-  background:rgba(255,255,255,0.24);
-  border-color:rgba(255,255,255,0.45);
+.spread-swap-btn:hover{
+  background:var(--panel-3);
+  border-color:var(--primary);
+  color:var(--text);
 }
-/* Duidelijk AAN-signaal: de modus verandert wat slepen doet, dus dat mag opvallen.
-   De actieve balk is zelf al blauw, dus een blauwe knop zou juist WEGvallen —
-   omgekeerd (witte pil, donkere tekst) leest hier als enige echt als "aan". */
-.spreadSwapBtn.active{
-  background:#fff;
-  border-color:#fff;
-  color:#1d4ed8;
-  font-weight:800;
-  box-shadow:0 0 0 3px rgba(255,255,255,0.35);
+/* AAN-staat. Let op: .spreadLabel heeft een HARDGECODEERDE achtergrond #3b82f6,
+   exact gelijk aan var(--primary). Een knop met background:var(--primary) valt
+   daardoor letterlijk samen met zijn eigen balk (gemeten kleurafstand 0) en oogt
+   weer als een platte tekstlink. Vandaar een DIEPER blauw plus een witte rand:
+   nog steeds een duidelijk blauwe knop, maar nu leesbaar als ingedrukte knop. */
+.spread-swap-btn.active{
+  background:#1d4ed8 !important;
+  border-color:#ffffff !important;
+  color:#ffffff !important;
+  box-shadow:0 2px 6px rgba(29, 78, 216, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.30);
 }
 
 /* In swap-modus is elk frame een sleepbaar item. */

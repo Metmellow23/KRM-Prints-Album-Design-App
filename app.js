@@ -1248,7 +1248,7 @@ function buildSpreadView(spreadModel){
   // --- Swap-modus: foto's van deze spread onderling verwisselen door slepen ---
   const swapBtn = document.createElement("button");
   swapBtn.type = "button";
-  swapBtn.className = "spreadSwapBtn";
+  swapBtn.className = "spread-swap-btn";
   swapBtn.textContent = "Swap";
   swapBtn.title = "Swap mode: drag a photo onto another photo to exchange them";
   swapBtn.classList.toggle("active", !!spreadModel.swapMode);
