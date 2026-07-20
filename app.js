@@ -1347,6 +1347,18 @@ function swapFramePhotos(spreadModel, frameA, frameB){
     relayoutSpreadWithGap(spreadModel);
   }
 
+  // Structurele sjabloonframes houden hun kader, maar de zojuist meegekopieerde
+  // beeldmaten hoorden bij het ANDERE kader. Bij tegels van verschillend formaat
+  // levert dat een foto op die zijn nieuwe kader niet vult (krimp/witte randen) of
+  // juist veel te groot staat, tot een zoomklik het toevallig herberekent. Daarom
+  // hier de cover-geometrie opnieuw opbouwen vanaf het NIEUWE kader.
+  [frameA, frameB].forEach(frame => {
+    if(isAutoFramed(frame) || !frame.photoId) return;
+    const photo = getPhotoById(frame.photoId);
+    if(!photo || !photo.naturalWidth || !photo.naturalHeight) return;
+    applyCoverFit(frame, photo.naturalWidth / photo.naturalHeight);
+  });
+
   rerenderSpread(spreadModel);
   renderLibrary();
   commitHistory();
@@ -1928,6 +1940,25 @@ function fitFrameToPhotoRatio(frameData, ratio){
   frameData.imageLeft = 0;
   frameData.imageTop = 0;
   frameData.autoFramed = true;
+  return true;
+}
+
+// Bouwt de cover-geometrie van een frame VOLLEDIG opnieuw op vanaf zijn huidige
+// kader: de foto vult het kader precies (kleinste schaal die beide assen dekt) en
+// staat gecentreerd. Anders dan ensureImageCoversFrame, dat een te GROTE foto laat
+// staan (zoom), zet dit de maat hard terug — nodig zodra beeldmaten van een ander
+// kader zijn overgenomen, zoals na een wissel.
+function applyCoverFit(frameData, ratio){
+  if(!ratio || !isFinite(ratio) || ratio <= 0) return false;
+  if((frameData.width / frameData.height) > ratio){
+    frameData.imageWidth = frameData.width;
+    frameData.imageHeight = frameData.width / ratio;
+  } else {
+    frameData.imageHeight = frameData.height;
+    frameData.imageWidth = frameData.height * ratio;
+  }
+  frameData.imageLeft = (frameData.width - frameData.imageWidth) / 2;
+  frameData.imageTop = (frameData.height - frameData.imageHeight) / 2;
   return true;
 }
 
