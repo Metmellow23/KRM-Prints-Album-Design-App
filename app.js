@@ -1055,11 +1055,34 @@ function updateSpreadNumbers(){
 }
 
 function setActiveSpread(spreadModel){
+  const previousId = activeSpread ? activeSpread.id : null;
   spreadViews.forEach(view => view.wrapper.classList.remove("active"));
   activeSpread = spreadModel || null;
   if(!activeSpread) return;
   const activeView = spreadViews.find(view => view.model.id === activeSpread.id);
   if(activeView) activeView.wrapper.classList.add("active");
+
+  // Auto-filter the bottom gallery to the spread the user just moved to, so the
+  // library always shows that page's own photos without touching the dropdown.
+  //
+  // Deliberately ONLY on a real spread CHANGE. setActiveSpread also fires when
+  // clicking a frame inside the ALREADY-active spread, and re-filtering there
+  // would fight the user: picking "All Photos" to place a new photo would snap
+  // back to the filtered view on the very next frame click, making it impossible
+  // to add a photo that is not already on the page. Keeping the override alive
+  // within a spread preserves that flow.
+  if(activeSpread.id !== previousId){
+    const pageIndex = project.spreads.indexOf(activeSpread);
+    // An empty spread has no photos to filter TO. Auto-filtering it would leave
+    // the gallery blank with nothing to drag in, so the page the user just opened
+    // to fill becomes the one page they cannot fill. Fall back to "All Photos"
+    // until the spread actually holds something.
+    const hasPhotos = activeSpread.frames.some(frame => frame.photoId);
+    if(pageIndex >= 0){
+      libraryPageFilterValue = hasPhotos ? String(pageIndex) : "all";
+      updateLibraryPageFilterOptions();
+    }
+  }
   renderLibrary();
 }
 
