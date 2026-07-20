@@ -427,14 +427,18 @@ function getFilteredTemplates(){
   return templates;
 }
 
+// Zet het aantal-foto's-filter van de sjablonenlijst op het werkelijke aantal
+// foto's van de actieve spread. Autoritatief: de waarde wordt ALTIJD gezet
+// (geklemd op 1..6) in plaats van stilletjes de oude waarde te laten staan bij
+// een lege spread of meer dan 6 foto's — anders opent het paneel op een aantal
+// dat niets met deze pagina te maken heeft.
 function syncTemplateCountToActiveSpread(){
-  if(!activeSpread) return;
-  const placedPhotoCount = activeSpread.frames.filter(frame => !!frame.photoId).length;
-  if(placedPhotoCount >= 1 && placedPhotoCount <= 6){
-    templatePhotoCount = placedPhotoCount;
-    if(templateCount){
-      templateCount.value = String(templatePhotoCount);
-    }
+  const placedCount = activeSpread
+    ? activeSpread.frames.filter(frame => !!frame.photoId).length
+    : 1;
+  templatePhotoCount = Math.min(6, Math.max(1, placedCount));
+  if(templateCount){
+    templateCount.value = String(templatePhotoCount);
   }
 }
 
@@ -452,13 +456,8 @@ function setAssetMode(mode){
   templateCountWrap.classList.toggle("hidden", !showTemplates);
 
   if(showTemplates){
-    if(activeSpread){
-      const placedPhotoCount = activeSpread.frames.filter(frame => !!frame.photoId).length;
-      if(placedPhotoCount >= 1 && placedPhotoCount <= 6){
-        templatePhotoCount = placedPhotoCount;
-        templateCount.value = String(templatePhotoCount);
-      }
-    }
+    // Openen op het aantal foto's van DEZE spread, niet op een blijvende 1.
+    syncTemplateCountToActiveSpread();
     renderTemplates();
   }
 }
@@ -1106,6 +1105,14 @@ function setActiveSpread(spreadModel){
       const wouldShow = getPhotosForPage(pageIndex).length;
       libraryPageFilterValue = wouldShow ? String(pageIndex) : "all";
       updateLibraryPageFilterOptions();
+    }
+
+    // Staat het sjablonenpaneel al open? Dan het aantal-foto's-filter meteen
+    // meebewegen met de nieuwe spread, zodat de getoonde layouts kloppen zonder
+    // dat de gebruiker eerst van tab hoeft te wisselen.
+    if(assetMode === "templates"){
+      syncTemplateCountToActiveSpread();
+      renderTemplates();
     }
   }
   renderLibrary();
