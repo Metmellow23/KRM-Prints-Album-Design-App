@@ -361,6 +361,12 @@ let templateFilterMode = "all";
 let templatePhotoCount = 1;
 let templateGapPx = 0;
 let libraryThumbSize = 60;
+// Staat er een DOOR DE APP gestarte scroll open? scrollToSpread zet de spread aan
+// de linkerrand, waardoor het midden van een breed venster op de VOLGENDE spread
+// valt. De scrollluisteraar zou dat als "gebruiker scrolde verder" lezen en de
+// selectie doorschuiven; deze vlag houdt dat tegen.
+let isProgrammaticScroll = false;
+let programmaticScrollTimer = null;
 let spreadViews = [];
 
 function createEmptyProject(formatValue){
@@ -1432,12 +1438,24 @@ function applyFormatToCanvas(canvas){
 function scrollToSpread(spreadModel, behavior = "smooth"){
   const view = getSpreadView(spreadModel);
   if(!view) return;
+  isProgrammaticScroll = true;
   const targetLeft = Math.max(0, view.wrapper.offsetLeft - 24);
   workspace.scrollTo({ left: targetLeft, behavior });
+
+  // Slot pas vrijgeven als de animatie klaar is. Een lopende timer eerst wissen:
+  // twee scrollToSpread-aanroepen kort na elkaar zouden anders het slot al
+  // opheffen terwijl de tweede animatie nog loopt.
+  if(programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+  programmaticScrollTimer = setTimeout(() => {
+    isProgrammaticScroll = false;
+    programmaticScrollTimer = null;
+  }, behavior === "smooth" ? 400 : 50);
 }
 
 
 function updateActiveSpreadFromScroll(){
+  // Door de app gestarte scroll: niet als gebruikersnavigatie behandelen.
+  if(isProgrammaticScroll) return;
   if(!spreadViews.length) return;
   const viewportCenter = workspace.scrollLeft + (workspace.clientWidth / 2);
   let bestView = null;
