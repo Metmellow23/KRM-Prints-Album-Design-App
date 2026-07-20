@@ -1073,13 +1073,14 @@ function setActiveSpread(spreadModel){
   // within a spread preserves that flow.
   if(activeSpread.id !== previousId){
     const pageIndex = project.spreads.indexOf(activeSpread);
-    // An empty spread has no photos to filter TO. Auto-filtering it would leave
-    // the gallery blank with nothing to drag in, so the page the user just opened
-    // to fill becomes the one page they cannot fill. Fall back to "All Photos"
-    // until the spread actually holds something.
-    const hasPhotos = activeSpread.frames.some(frame => frame.photoId);
     if(pageIndex >= 0){
-      libraryPageFilterValue = hasPhotos ? String(pageIndex) : "all";
+      // A page view now also carries every not-yet-placed photo, so an empty
+      // spread still opens with the unused pool ready to drag in. Only fall back
+      // to "All Photos" in the degenerate case where the view would be entirely
+      // blank (nothing on this page and nothing unplaced left) — otherwise the
+      // page the user opened to fill becomes the one page they cannot fill.
+      const wouldShow = getPhotosForPage(pageIndex).length;
+      libraryPageFilterValue = wouldShow ? String(pageIndex) : "all";
       updateLibraryPageFilterOptions();
     }
   }
@@ -1570,15 +1571,26 @@ function updateLibraryPageFilterOptions(){
   libraryPageFilter.value = libraryPageFilterValue;
 }
 
-// Past het paginafilter toe: bij "all" alle foto's, anders alleen de foto's die
-// op de gekozen spread zijn geplaatst (in plaatsingsvolgorde, zonder duplicaten).
-function getFilteredLibraryPhotos(){
-  if(libraryPageFilterValue === "all") return project.library;
-  const idx = Number(libraryPageFilterValue);
+// De foto's die bij één pagina horen: alles wat OP die spread staat, PLUS elke
+// foto die nog nergens in het album geplaatst is. Zo kan de gebruiker de layout
+// van deze pagina beheren én meteen bij de resterende pool, zonder telkens terug
+// te schakelen naar "All Photos". Bibliotheekvolgorde blijft behouden.
+function getPhotosForPage(idx){
   const spread = project.spreads ? project.spreads[idx] : null;
   if(!spread) return project.library;
-  const ids = new Set(spread.frames.map(frame => frame.photoId).filter(Boolean));
-  return project.library.filter(photo => ids.has(photo.id));
+  const onThisPage = new Set(spread.frames.map(frame => frame.photoId).filter(Boolean));
+  const usedAnywhere = new Set();
+  (project.spreads || []).forEach(s => {
+    (s.frames || []).forEach(frame => { if(frame.photoId) usedAnywhere.add(frame.photoId); });
+  });
+  return project.library.filter(photo => onThisPage.has(photo.id) || !usedAnywhere.has(photo.id));
+}
+
+// Past het paginafilter toe: bij "all" de hele bibliotheek, anders de pagina-view
+// (deze pagina + nog niet geplaatste foto's).
+function getFilteredLibraryPhotos(){
+  if(libraryPageFilterValue === "all") return project.library;
+  return getPhotosForPage(Number(libraryPageFilterValue));
 }
 
 function renderLibrary(){
