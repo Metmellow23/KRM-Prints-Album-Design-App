@@ -624,6 +624,13 @@ function relayoutSpreadWithGap(spreadModel){
     let frame = spreadModel.frames[index];
     const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, padding);
 
+    // Capture the CURRENT focal point (pan/crop) BEFORE the frame metrics change.
+    // Without this the block below would re-center every photo on each slider
+    // tick, silently throwing away the user's manual pan. Same math as the
+    // resize handlers: the fraction of the image that sits under the frame center.
+    const curPctX = (frame && frame.imageWidth) ? (frame.width / 2 - frame.imageLeft) / frame.imageWidth : 0.5;
+    const curPctY = (frame && frame.imageHeight) ? (frame.height / 2 - frame.imageTop) / frame.imageHeight : 0.5;
+
     // If a frame is (still) missing at this index, create one (safety net).
     if(!frame){
       frame = createTemplateFrame(slot, spreadWidth, spreadHeight, null, gap, padding);
@@ -641,15 +648,21 @@ function relayoutSpreadWithGap(spreadModel){
       const photo = getPhotoById(frame.photoId);
       if(photo && photo.naturalWidth && photo.naturalHeight){
         const ratio = photo.naturalWidth / photo.naturalHeight;
-        if((frame.width / frame.height) > ratio){
-          frame.imageWidth = frame.width;
-          frame.imageHeight = frame.width / ratio;
+        const nextW = frame.width;
+        const nextH = frame.height;
+        if((nextW / nextH) > ratio){
+          frame.imageWidth = nextW;
+          frame.imageHeight = nextW / ratio;
         } else {
-          frame.imageHeight = frame.height;
-          frame.imageWidth = frame.height * ratio;
+          frame.imageHeight = nextH;
+          frame.imageWidth = nextH * ratio;
         }
-        frame.imageLeft = (frame.width - frame.imageWidth) / 2;
-        frame.imageTop = (frame.height - frame.imageHeight) / 2;
+        // Re-apply the focal point captured above instead of hard-centering, so a
+        // manual pan/crop survives every Spacing/Border slider move. clamp keeps
+        // the image covering the frame (no blank edges) at the new bounds.
+        frame.imageLeft = (nextW / 2) - (curPctX * frame.imageWidth);
+        frame.imageTop = (nextH / 2) - (curPctY * frame.imageHeight);
+        clampImagePosition(frame);
       }
     }
 
