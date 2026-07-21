@@ -874,30 +874,53 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 }
 
 /* Volgorde-knoppen in het spreadlabel: klein en vierkant, zodat ze naast het
-   spreadnummer staan zonder de balk te laten groeien. */
+   spreadnummer staan zonder de balk te laten groeien.
+
+   Let op de kleuren: eerder stonden hier een doorschijnend WITTE vulling en
+   witte tekst, afgestemd op de blauwe labelbalk van het donkere thema. In het
+   lichte thema wordt diezelfde balk WIT (zie body.light-theme .spreadLabel),
+   waardoor wit-op-wit de knoppen volledig liet verdwijnen. Daarom nu een eigen
+   paneelvulling met rand — die leest op beide balken als een echte knop. */
 .spread-move-btn{
-  background:rgba(255,255,255,0.14);
-  color:#fff;
-  border:1px solid rgba(255,255,255,0.35);
-  border-radius:6px;
-  width:20px;
-  height:20px;
+  background:var(--panel-2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:4px;
+  width:22px;
+  height:22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   padding:0;
   font-family:inherit;
-  font-size:10px;
+  font-size:11px;
   line-height:1;
   cursor:pointer;
   transition:all 0.15s ease;
 }
 .spread-move-btn:first-of-type{ margin-left:6px; }
 .spread-move-btn:hover:not(:disabled){
-  background:#ffffff;
-  color:#1d4ed8;
-  border-color:#ffffff;
+  background:var(--primary);
+  border-color:var(--primary-2);
+  color:#ffffff;
 }
 .spread-move-btn:disabled{
-  opacity:0.3;
+  opacity:0.25;
   cursor:not-allowed;
+}
+
+/* Expliciet contrast binnen het lichte thema. De variabelen hierboven lossen in
+   dit thema al naar dezelfde waarden op; dit blok legt de bedoeling vast zodat
+   een latere themawijziging deze knoppen niet opnieuw onzichtbaar maakt. */
+body.light-theme .spread-move-btn{
+  background:#f0f0f0;
+  border-color:#cccccc;
+  color:#333333;
+}
+body.light-theme .spread-move-btn:hover:not(:disabled){
+  background:var(--primary);
+  border-color:var(--primary);
+  color:#ffffff;
 }
 
 /* In swap-modus is elk frame een sleepbaar item. */
