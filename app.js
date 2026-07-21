@@ -823,13 +823,14 @@ function applyTemplateToActiveSpread(templateId, options = {}){
   // a shared reference.
   activeSpread.slots = JSON.parse(JSON.stringify(template.slots));
 
-  // On EVERY new template choice the gap resets to the current global bottom bar
-  // (templateGapPx) and the spread is unlocked again. That way another template
-  // always opens with the current global Spacing; an earlier per-spread setting is
-  // deliberately dropped as soon as a new template is chosen.
-  activeSpread.gap = templateGapPx;
-  activeSpread.gapUserSet = false;
-  const spreadGap = templateGapPx;
+  // De Spacing van deze spread blijft van de GEBRUIKER. Heeft hij de slider ooit
+  // aangeraakt (gapUserSet), dan overleeft die waarde elke volgende sjabloonkeuze;
+  // een nieuw sjabloon zette hem eerder hard terug op de globale balk (meestal
+  // 0 px), waardoor de zelf ingestelde tussenruimte verdween. Alleen een spread
+  // die nog nooit is aangepast volgt de globale templateGapPx.
+  const currentGap = typeof activeSpread.gap === "number" ? activeSpread.gap : templateGapPx;
+  const spreadGap = activeSpread.gapUserSet ? currentGap : templateGapPx;
+  activeSpread.gap = spreadGap;
 
   const spreadPadding = typeof activeSpread.padding === "number" ? activeSpread.padding : 0;
   // Sjabloonframes nemen de VOLLEDIGE slotafmetingen over en krijgen expliciet
