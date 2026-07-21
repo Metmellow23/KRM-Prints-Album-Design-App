@@ -361,11 +361,11 @@ let templateFilterMode = "all";
 let templatePhotoCount = 1;
 let templateGapPx = 0;
 let libraryThumbSize = 60;
-// Staat er een DOOR DE APP gestarte scroll open? scrollToSpread zet de spread aan
-// de linkerrand, waardoor het midden van een breed venster op de VOLGENDE spread
+// Loopt er een DOOR DE APP gestarte scroll? scrollToSpread zet de spread aan de
+// linkerrand, waardoor het midden van een breed venster op de VOLGENDE spread
 // valt. De scrollluisteraar zou dat als "gebruiker scrolde verder" lezen en de
-// selectie doorschuiven; deze vlag houdt dat tegen.
-let isProgrammaticScroll = false;
+// selectie doorschuiven. In plaats van een vlag koppelen we de luisteraar tijdens
+// de animatie helemaal LOS; deze timer hangt hem er weer aan.
 let programmaticScrollTimer = null;
 let spreadViews = [];
 
@@ -1353,13 +1353,14 @@ function swapFramePhotos(spreadModel, frameA, frameB){
     relayoutSpreadWithGap(spreadModel);
   }
 
-  // Structurele sjabloonframes houden hun kader, maar de zojuist meegekopieerde
-  // beeldmaten hoorden bij het ANDERE kader. Bij tegels van verschillend formaat
-  // levert dat een foto op die zijn nieuwe kader niet vult (krimp/witte randen) of
-  // juist veel te groot staat, tot een zoomklik het toevallig herberekent. Daarom
-  // hier de cover-geometrie opnieuw opbouwen vanaf het NIEUWE kader.
+  // De zojuist meegekopieerde beeldmaten hoorden bij het ANDERE kader. Bij tegels
+  // van verschillend formaat levert dat een foto op die zijn nieuwe kader niet
+  // vult (krimp/witte randen) of juist veel te groot en vervormd staat, tot een
+  // zoomklik het toevallig herberekent. Daarom hier — NA de relayout, dus vanaf de
+  // definitieve kadermaten — de cover-geometrie van BEIDE kaders opnieuw opbouwen,
+  // zodat elke foto zijn eigen verhouding houdt en gecentreerd in het kader valt.
   [frameA, frameB].forEach(frame => {
-    if(isAutoFramed(frame) || !frame.photoId) return;
+    if(!frame.photoId) return;
     const photo = getPhotoById(frame.photoId);
     if(!photo || !photo.naturalWidth || !photo.naturalHeight) return;
     applyCoverFit(frame, photo.naturalWidth / photo.naturalHeight);
@@ -1438,24 +1439,32 @@ function applyFormatToCanvas(canvas){
 function scrollToSpread(spreadModel, behavior = "smooth"){
   const view = getSpreadView(spreadModel);
   if(!view) return;
-  isProgrammaticScroll = true;
+
+  // Luisteraar LOSKOPPELEN voordat de scroll begint: zolang de vloeiende animatie
+  // loopt mag geen enkele tussenpositie de actieve spread herberekenen. Een al
+  // ingeplande rAF uit een eerdere scroll hier ook annuleren, anders vuurt die
+  // alsnog midden in de beweging.
+  workspace.removeEventListener('scroll', handleWorkspaceScroll);
+  if(scrollActiveSpreadRaf){
+    cancelAnimationFrame(scrollActiveSpreadRaf);
+    scrollActiveSpreadRaf = null;
+  }
+  // Lopende timer eerst wissen: twee scrollToSpread-aanroepen kort na elkaar
+  // zouden anders de luisteraar terugzetten terwijl de tweede animatie nog loopt.
+  if(programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+
   const targetLeft = Math.max(0, view.wrapper.offsetLeft - 24);
   workspace.scrollTo({ left: targetLeft, behavior });
 
-  // Slot pas vrijgeven als de animatie klaar is. Een lopende timer eerst wissen:
-  // twee scrollToSpread-aanroepen kort na elkaar zouden anders het slot al
-  // opheffen terwijl de tweede animatie nog loopt.
-  if(programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+  // Pas terugkoppelen als het beeld helemaal stilstaat op de doelspread.
   programmaticScrollTimer = setTimeout(() => {
-    isProgrammaticScroll = false;
+    workspace.addEventListener('scroll', handleWorkspaceScroll);
     programmaticScrollTimer = null;
-  }, behavior === "smooth" ? 400 : 50);
+  }, behavior === "smooth" ? 800 : 100);
 }
 
 
 function updateActiveSpreadFromScroll(){
-  // Door de app gestarte scroll: niet als gebruikersnavigatie behandelen.
-  if(isProgrammaticScroll) return;
   if(!spreadViews.length) return;
   const viewportCenter = workspace.scrollLeft + (workspace.clientWidth / 2);
   let bestView = null;
@@ -1475,14 +1484,17 @@ function updateActiveSpreadFromScroll(){
   }
 }
 
+// Benoemde handler, zodat scrollToSpread hem tijdelijk kan LOSKOPPELEN. Een
+// anonieme functie zou daar niet te verwijderen zijn.
 let scrollActiveSpreadRaf = null;
-workspace.addEventListener('scroll', () => {
+function handleWorkspaceScroll(){
   if(scrollActiveSpreadRaf) cancelAnimationFrame(scrollActiveSpreadRaf);
   scrollActiveSpreadRaf = requestAnimationFrame(() => {
     updateActiveSpreadFromScroll();
     scrollActiveSpreadRaf = null;
   });
-});
+}
+workspace.addEventListener('scroll', handleWorkspaceScroll);
 
 function resizeAllCanvases(){
   spreadViews.forEach(view => {
