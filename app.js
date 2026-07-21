@@ -14,6 +14,8 @@ const loadProjectInput = document.getElementById("loadProjectInput");
 const introLoadProjectInput = document.getElementById("introLoadProjectInput");
 const library = document.getElementById("library");
 const spreadCount = document.getElementById("spreadCount");
+const undoBtn = document.getElementById("undoBtn");
+const redoBtn = document.getElementById("redoBtn");
 const zoomLevelEl = document.getElementById("zoomLevel");
 const projectNameInput = document.getElementById("startupProjectName");
 const formatSelect = document.getElementById("startupFormat");
@@ -1111,6 +1113,11 @@ function updateSpreadNumbers(){
     } else {
       view.label.textContent = (i + 1);
     }
+    // De randen van het album kunnen niet verder opschuiven. Hier bijwerken en
+    // niet bij het bouwen, want dupliceren/verwijderen verschuift de posities
+    // zonder de views opnieuw op te bouwen.
+    if(view.moveLeftBtn) view.moveLeftBtn.disabled = (i === 0);
+    if(view.moveRightBtn) view.moveRightBtn.disabled = (i === spreadViews.length - 1);
   });
   spreadCount.innerText = project.spreads.length;
   // Houd het "Show"-paginafilter in de onderste galerij synchroon met het
@@ -1176,6 +1183,34 @@ function buildSpreadView(spreadModel){
   label.className = "spreadLabel";
   const labelText = document.createElement("span");
   label.appendChild(labelText);
+
+  // --- Volgorde: deze spread een plek naar links/rechts verplaatsen ---
+  // De uitgeschakelde staat hangt af van de positie in project.spreads en wordt
+  // daarom bij elke hernummering opnieuw gezet (zie updateSpreadNumbers).
+  const moveLeftBtn = document.createElement("button");
+  moveLeftBtn.type = "button";
+  moveLeftBtn.className = "spread-move-btn";
+  moveLeftBtn.textContent = "◄";
+  moveLeftBtn.title = "Move this spread one place to the left";
+  moveLeftBtn.setAttribute("aria-label", "Move spread left");
+  label.appendChild(moveLeftBtn);
+
+  const moveRightBtn = document.createElement("button");
+  moveRightBtn.type = "button";
+  moveRightBtn.className = "spread-move-btn";
+  moveRightBtn.textContent = "►";
+  moveRightBtn.title = "Move this spread one place to the right";
+  moveRightBtn.setAttribute("aria-label", "Move spread right");
+  label.appendChild(moveRightBtn);
+
+  moveLeftBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    moveSpread(spreadModel, -1);
+  });
+  moveRightBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    moveSpread(spreadModel, 1);
+  });
 
   const colorInput = document.createElement("input");
   colorInput.type = "color";
@@ -1295,7 +1330,7 @@ function buildSpreadView(spreadModel){
   wrapper.addEventListener("click", () => setActiveSpread(spreadModel));
   workspace.insertBefore(wrapper, addSpreadBtn);
 
-  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue, padSlider, padValue, swapBtn };
+  const view = { model: spreadModel, wrapper, label, canvas, cutline, fold, gapSlider, gapValue, padSlider, padValue, swapBtn, moveLeftBtn, moveRightBtn };
   spreadViews.push(view);
   return view;
 }
@@ -1577,6 +1612,15 @@ function initHistory(){
   undoStack = [];
   redoStack = [];
   historyPresent = cloneSpreads();
+  updateHistoryButtons();
+}
+
+// De Undo/Redo-knoppen in de topbar zijn alleen klikbaar zolang er echt een stap
+// in de betreffende stapel staat. Elke plek die de stapels aanraakt loopt hier
+// langs, zodat de knoppen nooit een stap beloven die er niet is.
+function updateHistoryButtons(){
+  if(undoBtn) undoBtn.disabled = undoStack.length === 0;
+  if(redoBtn) redoBtn.disabled = redoStack.length === 0;
 }
 
 // Legt een committed frame-wijziging vast. Slaat no-ops over (klik zonder echte
@@ -1589,6 +1633,7 @@ function commitHistory(){
   if(undoStack.length > 60) undoStack.shift();
   redoStack = [];
   historyPresent = current;
+  updateHistoryButtons();
 }
 
 function restoreSpreadsSnapshot(snapshot){
@@ -1601,6 +1646,7 @@ function undoFrameChange(){
   redoStack.push(historyPresent);
   historyPresent = undoStack.pop();
   restoreSpreadsSnapshot(historyPresent);
+  updateHistoryButtons();
 }
 
 function redoFrameChange(){
@@ -1608,7 +1654,11 @@ function redoFrameChange(){
   undoStack.push(historyPresent);
   historyPresent = redoStack.pop();
   restoreSpreadsSnapshot(historyPresent);
+  updateHistoryButtons();
 }
+
+if(undoBtn) undoBtn.addEventListener('click', () => undoFrameChange());
+if(redoBtn) redoBtn.addEventListener('click', () => redoFrameChange());
 
 // Ctrl/Cmd+Z = undo, Ctrl/Cmd+Shift+Z = redo. Niet kapen tijdens tekstinvoer.
 document.addEventListener('keydown', (e) => {
@@ -2753,6 +2803,32 @@ function duplicateSpread(spreadModel){
   updateSpreadNumbers();
   setActiveSpread(duplicate);
   renderLibrary();
+}
+
+// Verwisselt een spread met zijn buur (direction -1 = links, 1 = rechts). De
+// volgorde leeft in project.spreads; de workspace wordt daarna volledig vanuit
+// dat model herbouwd, precies zoals na een undo. Daardoor kloppen nummering,
+// frames en bibliotheekfilter in één keer.
+function moveSpread(spreadModel, direction){
+  if(!spreadModel) return;
+  const from = project.spreads.findIndex(spread => spread.id === spreadModel.id);
+  if(from < 0) return;
+  const to = from + direction;
+  if(to < 0 || to >= project.spreads.length) return;
+
+  const moved = project.spreads[from];
+  project.spreads[from] = project.spreads[to];
+  project.spreads[to] = moved;
+
+  // Eerst vastleggen, dan herbouwen: commitHistory vergelijkt met de vorige
+  // staat, dus de wissel staat als één stap in de undo-stapel.
+  commitHistory();
+  rebuildWorkspaceFromModel();
+
+  // rebuildWorkspaceFromModel valt terug op de eerste spread; de gebruiker werkt
+  // aan de verplaatste spread, dus die houdt de focus en schuift mee in beeld.
+  setActiveSpread(moved);
+  scrollToSpread(moved);
 }
 
 function deleteSpread(spreadModel){

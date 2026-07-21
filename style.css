@@ -540,6 +540,27 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   filter:grayscale(0.3);
 }
 
+/* Een uitgeschakelde knop mag niet meer oplichten of opveren bij hover: die
+   feedback belooft een klik die toch niets doet. */
+.btn:disabled:hover{
+  transform:none;
+  background:linear-gradient(180deg, var(--panel-3) 0%, var(--panel-2) 100%);
+}
+
+/* Undo/Redo staan als één paar in de topbar: compacte icoonknoppen die naast
+   elkaar als één besturingselement lezen. */
+.history-controls{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex:0 0 auto;
+}
+
+.history-btn{
+  min-width:auto;
+  padding:6px 10px;
+}
+
 /* Amber "Sihirbaza Geri Dön"-knop in de topbar (live-preview terugkeer). De
    gradient staat inline; hover licht hem alleen subtiel op via filter zodat de
    inline achtergrond niet overschreven hoeft te worden. */
@@ -850,6 +871,33 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   border-color:#ffffff !important;
   color:#ffffff !important;
   box-shadow:0 2px 6px rgba(29, 78, 216, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.30);
+}
+
+/* Volgorde-knoppen in het spreadlabel: klein en vierkant, zodat ze naast het
+   spreadnummer staan zonder de balk te laten groeien. */
+.spread-move-btn{
+  background:rgba(255,255,255,0.14);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.35);
+  border-radius:6px;
+  width:20px;
+  height:20px;
+  padding:0;
+  font-family:inherit;
+  font-size:10px;
+  line-height:1;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.spread-move-btn:first-of-type{ margin-left:6px; }
+.spread-move-btn:hover:not(:disabled){
+  background:#ffffff;
+  color:#1d4ed8;
+  border-color:#ffffff;
+}
+.spread-move-btn:disabled{
+  opacity:0.3;
+  cursor:not-allowed;
 }
 
 /* In swap-modus is elk frame een sleepbaar item. */
