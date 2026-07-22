@@ -3305,6 +3305,8 @@ function sortWizardPhotos(items){
       if(diff !== 0) return diff;
       return getName(a).localeCompare(getName(b), "en");
     });
+  } else if(wizardSortMode === "alpha-desc"){
+    sorted.sort((a, b) => getName(b).localeCompare(getName(a), "en"));
   } else {
     sorted.sort((a, b) => getName(a).localeCompare(getName(b), "en"));
   }
