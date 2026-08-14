@@ -3276,7 +3276,11 @@ function assignPhotoToActivePage(photoId){
   // Zelfde foto niet twee keer in hetzelfde pakket.
   if(page.photoIds.includes(photoId)) return;
   page.photoIds.push(photoId);
-  renderWizardStep2();
+  // Perf: geen volledige #wizardLibrary re-render (zware reflow bij grote
+  // fotosets). Alleen de eigen thumb-badge bijwerken + rechterkolom/teller.
+  updateWizardThumbBadge(photoId);
+  renderWizardPagesColumn();
+  updateWizardLibCounter();
 }
 
 function addWizardPage(){
@@ -3313,63 +3317,104 @@ function sortWizardPhotos(items){
   return sorted;
 }
 
-function renderWizardStep2(){
-  // Teller toont "X / Y": X = unieke foto's die in minstens één pagina zitten
-  // (en nog in de bibliotheek bestaan), Y = totaal geladen foto's. Wordt via
-  // renderWizardStep2 bij elke toevoeging/verwijdering opnieuw berekend.
-  if(wizardLibCount){
-    const assigned = new Set();
-    wizardState.pages.forEach(page => page.photoIds.forEach(id => assigned.add(id)));
-    const usedCount = [...assigned].filter(id => getPhotoById(id)).length;
-    wizardLibCount.textContent = `${usedCount} / ${project.library.length}`;
-  }
+// Teller toont "X / Y": X = unieke foto's die in minstens één pagina zitten
+// (en nog in de bibliotheek bestaan), Y = totaal geladen foto's. Losgetrokken
+// uit renderWizardStep2 zodat een enkele toewijzing niet de hele bibliotheek
+// hoeft te herrenderen om alleen dit getal bij te werken.
+function updateWizardLibCounter(){
+  if(!wizardLibCount) return;
+  const assigned = new Set();
+  wizardState.pages.forEach(page => page.photoIds.forEach(id => assigned.add(id)));
+  const usedCount = [...assigned].filter(id => getPhotoById(id)).length;
+  wizardLibCount.textContent = `${usedCount} / ${project.library.length}`;
+}
 
-  // Linkerkolom: bibliotheek-thumbnails (klik = toevoegen aan actieve pagina).
-  if(wizardLibraryEl){
-    wizardLibraryEl.innerHTML = "";
-    if(!project.library.length){
-      wizardLibraryEl.innerHTML = '<div class="wizard-empty">No photos loaded yet. Go back to step 1.</div>';
-    } else {
-      sortWizardPhotos(project.library).forEach(photo => {
-        const cell = document.createElement("button");
-        cell.type = "button";
-        cell.className = "wizard-thumb";
-        cell.title = photo.name;
-        const pages = wizardPhotoPages(photo.id);
-        if(pages.length) cell.classList.add("used");
+// Lichtgewicht update van ÉÉN fotokaart in de bibliotheek: past enkel de
+// '.used'-class en de 'Page N'-badges van die kaart aan, zonder de rest van
+// #wizardLibrary aan te raken. Voorkomt de volledige reflow/re-render van de
+// linkerkolom bij elke enkele toewijzing/verwijdering (grote fotosets liepen
+// hierdoor vast).
+function updateWizardThumbBadge(photoId){
+  if(!wizardLibraryEl) return;
+  const cell = Array.from(wizardLibraryEl.children).find(c => c.dataset && c.dataset.photoId === String(photoId));
+  if(!cell) return;
 
-        const img = document.createElement("img");
-        img.src = photo.src;
-        img.alt = photo.name;
-        cell.appendChild(img);
+  const pages = wizardPhotoPages(photoId);
+  cell.classList.toggle("used", pages.length > 0);
 
-        // Bestandsnaam onder de foto, zodat de gebruiker zijn bestanden herkent
-        // tijdens het indelen. Ellipsis bij te lange namen (CSS).
-        const nameTag = document.createElement("div");
-        nameTag.className = "wizard-thumb-name";
-        nameTag.textContent = photo.name;
-        cell.appendChild(nameTag);
-
-        // Duidelijke "Sayfa N"-badges rechtsboven op de fotokaart.
-        if(pages.length){
-          const badges = document.createElement("div");
-          badges.className = "wizard-thumb-badges";
-          pages.forEach(pageNr => {
-            const badge = document.createElement("span");
-            badge.className = "wizard-thumb-badge";
-            badge.textContent = `Page ${pageNr}`;
-            badges.appendChild(badge);
-          });
-          cell.appendChild(badges);
-        }
-
-        cell.addEventListener("click", () => assignPhotoToActivePage(photo.id));
-        wizardLibraryEl.appendChild(cell);
-      });
+  let badges = cell.querySelector(".wizard-thumb-badges");
+  if(pages.length){
+    if(!badges){
+      badges = document.createElement("div");
+      badges.className = "wizard-thumb-badges";
+      cell.appendChild(badges);
     }
+    badges.innerHTML = "";
+    pages.forEach(pageNr => {
+      const badge = document.createElement("span");
+      badge.className = "wizard-thumb-badge";
+      badge.textContent = `Page ${pageNr}`;
+      badges.appendChild(badge);
+    });
+  } else if(badges){
+    badges.remove();
   }
+}
 
-  // Rechterkolom: pagina-pakketten.
+// Linkerkolom: bibliotheek-thumbnails (klik = toevoegen aan actieve pagina).
+// Volledige re-render — alleen aanroepen bij initiële stap-load, sorteerwissel
+// of wijzigingen aan de bibliotheek zelf (upload). Voor losse toewijzingen/
+// verwijderingen: updateWizardThumbBadge() gebruiken.
+function renderWizardLibrary(){
+  if(!wizardLibraryEl) return;
+  wizardLibraryEl.innerHTML = "";
+  if(!project.library.length){
+    wizardLibraryEl.innerHTML = '<div class="wizard-empty">No photos loaded yet. Go back to step 1.</div>';
+    return;
+  }
+  sortWizardPhotos(project.library).forEach(photo => {
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "wizard-thumb";
+    cell.title = photo.name;
+    cell.dataset.photoId = photo.id;
+    const pages = wizardPhotoPages(photo.id);
+    if(pages.length) cell.classList.add("used");
+
+    const img = document.createElement("img");
+    img.src = photo.src;
+    img.alt = photo.name;
+    cell.appendChild(img);
+
+    // Bestandsnaam onder de foto, zodat de gebruiker zijn bestanden herkent
+    // tijdens het indelen. Ellipsis bij te lange namen (CSS).
+    const nameTag = document.createElement("div");
+    nameTag.className = "wizard-thumb-name";
+    nameTag.textContent = photo.name;
+    cell.appendChild(nameTag);
+
+    // Duidelijke "Sayfa N"-badges rechtsboven op de fotokaart.
+    if(pages.length){
+      const badges = document.createElement("div");
+      badges.className = "wizard-thumb-badges";
+      pages.forEach(pageNr => {
+        const badge = document.createElement("span");
+        badge.className = "wizard-thumb-badge";
+        badge.textContent = `Page ${pageNr}`;
+        badges.appendChild(badge);
+      });
+      cell.appendChild(badges);
+    }
+
+    cell.addEventListener("click", () => assignPhotoToActivePage(photo.id));
+    wizardLibraryEl.appendChild(cell);
+  });
+}
+
+// Rechterkolom: pagina-pakketten. Blijft een volledige re-render van #wizardPages
+// (relatief goedkoop t.o.v. de bibliotheek) omdat page-index-wissels (add/remove/
+// move) de "Page N"-badges van meerdere foto's tegelijk kunnen laten schuiven.
+function renderWizardPagesColumn(){
   if(wizardPagesEl){
     wizardPagesEl.innerHTML = "";
     wizardState.pages.forEach((page, index) => {
@@ -3481,7 +3526,11 @@ function renderWizardStep2(){
           mini.addEventListener("click", (e) => {
             e.stopPropagation();
             page.photoIds.splice(pi, 1);
-            renderWizardStep2();
+            // Perf: idem als bij toewijzen — alleen de badge van deze foto + de
+            // rechterkolom/teller bijwerken, niet de hele bibliotheek.
+            updateWizardThumbBadge(pid);
+            renderWizardPagesColumn();
+            updateWizardLibCounter();
           });
           strip.appendChild(mini);
         });
@@ -3501,6 +3550,18 @@ function renderWizardStep2(){
 
   const canContinue = wizardState.pages.some(p => p.photoIds.length > 0);
   if(wizardNext2) wizardNext2.disabled = !canContinue;
+}
+
+// Volledige stap-2 render: teller + linkerkolom (bibliotheek) + rechterkolom
+// (pagina's). Alleen aanroepen bij initiële stap-load, sorteerwissel, upload,
+// of page-structuurwijzigingen (add/remove/move) — die laten "Page N"-badges
+// over meerdere foto's tegelijk schuiven, dus dan kan de lichtgewicht
+// updateWizardThumbBadge() niet volstaan. Voor losse toewijzing/verwijdering
+// van één foto: zie assignPhotoToActivePage() en de mini-x handler hierboven.
+function renderWizardStep2(){
+  updateWizardLibCounter();
+  renderWizardLibrary();
+  renderWizardPagesColumn();
 }
 
 function renderWizardStep3(){
