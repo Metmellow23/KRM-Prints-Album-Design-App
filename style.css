@@ -749,9 +749,16 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 #workspace{
   flex:1;
   display:flex;
+  /* "safe center": zodra een (ingezoomde) spread hoger is dan de werkruimte,
+     valt hij terug op uitlijnen vanaf boven. Met gewoon "center" schoof de
+     bovenrand — en daarmee de spreadlabel-balk — buiten het scrollbare gebied. */
   align-items:center;
+  align-items:safe center;
   overflow-x:auto;
   padding:40px;
+  /* Extra ruimte boven voor de spreadlabel-balk die boven elke wrapper hangt
+     (en bij een smalle spread naar boven over twee regels kan lopen). */
+  padding-top:72px;
   background:#0f0f0f;
   gap:32px;
 }
@@ -759,6 +766,9 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 /* CANVAS WRAPPER */
 .canvasWrapper{
   position:relative;
+  /* Eigen stapelvlak per spread: hover/actief tilt de HELE wrapper (incl. zijn
+     label) boven de buren, zodat de labelbalk nooit onder een buur verdwijnt. */
+  z-index:1;
   flex-shrink:0;
   border:3px solid transparent;
   border-radius:8px;
@@ -769,9 +779,11 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
 
 .canvasWrapper:hover{
   border-color:#333;
+  z-index:25;
 }
 
 .canvasWrapper.active{
+  z-index:20;
   border:3px solid #3b82f6;
   box-shadow:0 0 24px rgba(59,130,246,0.25);
 }
@@ -783,30 +795,45 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
 }
 
-/* spread nummer label */
+/* spread nummer label
+   Hangt boven de wrapper (bottom i.p.v. top, zodat een tweede regel naar BOVEN
+   groeit en niet over de spread valt). Breedte = eigen inhoud, maar nooit breder
+   dan de wrapper zelf: is de spread smaller dan de balk, dan loopt de inhoud
+   over meerdere regels in plaats van horizontaal over de buren heen te steken
+   (waar o.a. de Swap-knop onder de volgende spread verdween). */
 .spreadLabel{
   position:absolute;
-  top:-28px;
-  left:50%;
-  transform:translateX(-50%);
+  top:auto;
+  bottom:calc(100% - 2px);
+  left:0;
+  right:0;
+  margin:0 auto;
+  width:max-content;
+  max-width:100%;
+  box-sizing:border-box;
   font-size:13px;
   font-weight:700;
   color:#fff;
   background:#3b82f6;
-  padding:4px 10px;
+  padding:3px 8px;
   border-radius:10px;
   min-width:26px;
   text-align:center;
-  z-index:5;
+  z-index:30;
   display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
   align-items:center;
-  gap:4px;
+  gap:4px 4px;
   white-space:nowrap;
+}
+.spreadLabel > *{
+  flex-shrink:0;
 }
 
 /* Per-spread Ruimte (gap) slider in het spreadlabel */
 .spreadGapLabel{
-  margin-left:8px;
+  margin-left:6px;
   font-size:11px;
   font-weight:600;
   opacity:0.9;
@@ -824,7 +851,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   text-align:left;
 }
 .spreadPadLabel{
-  margin-left:12px;
+  margin-left:6px;
   font-size:11px;
   font-weight:600;
   opacity:0.9;
@@ -853,7 +880,7 @@ body.exporting .photo-frame.placeholder .crop-height-handle-top{
   font-size:11px;
   font-weight:600;
   cursor:pointer;
-  margin-left:12px;
+  margin-left:6px;
   transition:all 0.15s ease;
 }
 .spread-swap-btn:hover{

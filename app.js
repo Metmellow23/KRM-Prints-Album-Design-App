@@ -566,12 +566,61 @@ function mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx = 0){
   };
 }
 
+// Snaps a normalized slot edge (0..1) to a whole spread unit. The inner rounding
+// to 1e-6 first removes float noise (1/3 + 1/3 vs 2/3), so two slots that share a
+// seam ALWAYS land on the same integer, even when the exact value sits on .5.
+function snapSlotEdge(edge, size){
+  return Math.round(Math.round(edge * size * 1e6) / 1e6);
+}
+
+// Integer frame box for a template slot. Unlike mmToLayout (normalized, used for
+// the thumbnails) every seam is first locked to ONE integer position S, after
+// which the frame on the left/top ends at S - ceil(gap/2) and the one on the
+// right/bottom starts at S + floor(gap/2). The two halves always add up to the
+// gap, so every seam is exactly `gap` wide — also for odd gaps, where the old
+// gap/2 + independent Math.round() calls made one seam 1 unit wider than another.
+// Rounding remainders end up in the frame SIZES, never in the gaps. Outer edges
+// sit exactly `padding` from the album edge.
+function slotToFrameBox(slot, spreadWidth, spreadHeight, gap, paddingPx = 0){
+  if(slot.style !== "full-bleed" || typeof slot.x !== "number"){
+    const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx);
+    return {
+      x: Math.round(layout.x * spreadWidth),
+      y: Math.round(layout.y * spreadHeight),
+      width: Math.round(layout.w * spreadWidth),
+      height: Math.round(layout.h * spreadHeight)
+    };
+  }
+
+  const g = Math.max(0, Math.round(gap || 0));
+  const pad = Math.max(0, Math.round(paddingPx || 0));
+  const gapBefore = Math.ceil(g / 2);  // taken off the frame BEFORE a seam
+  const gapAfter = Math.floor(g / 2);  // taken off the frame AFTER a seam
+
+  const touchesLeft = slot.x <= 0.0001;
+  const touchesTop = slot.y <= 0.0001;
+  const touchesRight = (slot.x + slot.w) >= 0.9999;
+  const touchesBottom = (slot.y + slot.h) >= 0.9999;
+
+  const left = touchesLeft ? pad : snapSlotEdge(slot.x, spreadWidth) + gapAfter;
+  const top = touchesTop ? pad : snapSlotEdge(slot.y, spreadHeight) + gapAfter;
+  const right = touchesRight ? spreadWidth - pad : snapSlotEdge(slot.x + slot.w, spreadWidth) - gapBefore;
+  const bottom = touchesBottom ? spreadHeight - pad : snapSlotEdge(slot.y + slot.h, spreadHeight) - gapBefore;
+
+  return {
+    x: left,
+    y: top,
+    width: Math.max(0, right - left),
+    height: Math.max(0, bottom - top)
+  };
+}
+
 function createTemplateFrame(slot, spreadWidth, spreadHeight, photoId = null, gap = templateGapPx, paddingPx = 0){
-  const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, paddingPx);
-  const x = Math.round(layout.x * spreadWidth);
-  const y = Math.round(layout.y * spreadHeight);
-  const width = Math.max(60, Math.round(layout.w * spreadWidth));
-  const height = Math.max(60, Math.round(layout.h * spreadHeight));
+  const box = slotToFrameBox(slot, spreadWidth, spreadHeight, gap, paddingPx);
+  const x = box.x;
+  const y = box.y;
+  const width = Math.max(60, box.width);
+  const height = Math.max(60, box.height);
   const frame = createFrameData(photoId, x, y, width, height, {
     imageWidth: width,
     imageHeight: height,
@@ -631,7 +680,7 @@ function relayoutSpreadWithGap(spreadModel){
   // we mutate the EXISTING frames + their DOM nodes in place; ids stay unchanged.
   spreadModel.slots.forEach((slot, index) => {
     let frame = spreadModel.frames[index];
-    const layout = mmToLayout(slot, spreadWidth, spreadHeight, gap, padding);
+    const box = slotToFrameBox(slot, spreadWidth, spreadHeight, gap, padding);
 
     // Capture the CURRENT focal point (pan/crop) BEFORE the frame metrics change.
     // Without this the block below would re-center every photo on each slider
@@ -652,10 +701,11 @@ function relayoutSpreadWithGap(spreadModel){
       spreadModel.frames[index] = frame;
     } else {
       // Update the dimensions of the EXISTING frame; do NOT touch the id.
-      frame.x = Math.round(layout.x * spreadWidth);
-      frame.y = Math.round(layout.y * spreadHeight);
-      frame.width = Math.max(60, Math.round(layout.w * spreadWidth));
-      frame.height = Math.max(60, Math.round(layout.h * spreadHeight));
+      // Integer box with exact seams (see slotToFrameBox).
+      frame.x = box.x;
+      frame.y = box.y;
+      frame.width = Math.max(60, box.width);
+      frame.height = Math.max(60, box.height);
     }
 
     // Recalculate the cover/focus FULLY SYNCHRONOUSLY from the cached natural sizes.
@@ -750,11 +800,15 @@ function writeBackResizedSlot(spreadModel, frameData){
   const touchesRight  = (nx + nw) >= 1 - (halfGapX + padX + 0.001);
   const touchesBottom = (ny + nh) >= 1 - (halfGapY + padY + 0.001);
 
-  // Fold the gap inset back out into the "tile", clamped within [0..1].
-  const tileLeft   = touchesLeft   ? 0 : nx - halfGapX;
-  const tileTop    = touchesTop    ? 0 : ny - halfGapY;
-  const tileRight  = touchesRight  ? 1 : (nx + nw) + halfGapX;
-  const tileBottom = touchesBottom ? 1 : (ny + nh) + halfGapY;
+  // Fold the gap inset back out into the "tile", clamped within [0..1]. Uses the
+  // SAME floor/ceil split as slotToFrameBox, so the seam lands back on an exact
+  // integer and the next relayout reproduces this frame unit-for-unit (a plain
+  // gap/2 put odd-gap seams on .5 and let them drift by 1 on every round-trip).
+  const g = Math.max(0, Math.round(gap));
+  const tileLeft   = touchesLeft   ? 0 : (frameData.x - Math.floor(g / 2)) / spreadWidth;
+  const tileTop    = touchesTop    ? 0 : (frameData.y - Math.floor(g / 2)) / spreadHeight;
+  const tileRight  = touchesRight  ? 1 : (frameData.x + frameData.width + Math.ceil(g / 2)) / spreadWidth;
+  const tileBottom = touchesBottom ? 1 : (frameData.y + frameData.height + Math.ceil(g / 2)) / spreadHeight;
 
   spreadModel.slots[index] = {
     ...(spreadModel.slots[index] || {}),
